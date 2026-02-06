@@ -1,0 +1,138 @@
+import { createTrace, endTrace, createSpan, addFeedbackScore } from "../../lib/opik";
+
+const SYSTEM_PROMPT = `You are a Productivity Advisor AI for OKMindful, a commitment & accountability app for 2026 New Year's resolutions.
+
+Your role:
+- Help users plan goals and break them into actionable steps
+- Suggest effective pomodoro/timeboxing strategies
+- Help create accountability commitments with appropriate stakes
+- Review progress and suggest improvements
+- Provide motivational support without being preachy
+
+Be concise, practical, and actionable. Use bullet points when listing steps. Keep responses under 200 words unless the user asks for detail. Always respond in the same language the user writes in.`;
+
+const GEMINI_MODEL = "gemini-2.0-flash";
+
+export async function POST(req: Request) {
+  const { messages } = (await req.json()) as {
+    messages: { role: "user" | "assistant"; content: string }[];
+  };
+
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    return Response.json(
+      {
+        content:
+          "GEMINI_API_KEY is not configured. Add it to .env.local:\n\nGEMINI_API_KEY=your_key\n\nGet one free at https://aistudio.google.com/apikey\nThen restart the dev server.",
+        traceId: null,
+      },
+      { status: 200 }
+    );
+  }
+
+  const traceId = crypto.randomUUID();
+  const spanId = crypto.randomUUID();
+  const startTime = new Date().toISOString();
+
+  await createTrace({
+    id: traceId,
+    name: "productivity-advisor-chat",
+    input: { messages, message_count: messages.length },
+    startTime,
+    metadata: { model: GEMINI_MODEL, system_prompt_version: "v1" },
+  });
+
+  const geminiContents = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  try {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: geminiContents,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 512,
+          },
+        }),
+      }
+    );
+
+    if (!geminiRes.ok) {
+      const err = await geminiRes.text();
+      await endTrace({ id: traceId, output: { error: err } });
+      return Response.json({ content: `Gemini error: ${err}`, traceId }, { status: 200 });
+    }
+
+    const data = await geminiRes.json();
+    const content: string =
+      data.candidates?.[0]?.content?.parts?.[0]?.text || "No response from Gemini.";
+    const usageMeta = data.usageMetadata as
+      | { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number }
+      | undefined;
+    const usage = usageMeta
+      ? {
+          prompt_tokens: usageMeta.promptTokenCount,
+          completion_tokens: usageMeta.candidatesTokenCount,
+          total_tokens: usageMeta.totalTokenCount,
+        }
+      : undefined;
+
+    const endTime = new Date().toISOString();
+
+    await createSpan({
+      id: spanId,
+      traceId,
+      name: "gemini-flash-completion",
+      type: "llm",
+      input: { messages: geminiContents, system_prompt: SYSTEM_PROMPT },
+      output: { content },
+      startTime,
+      endTime,
+      metadata: { model: GEMINI_MODEL, temperature: 0.7 },
+      usage,
+    });
+
+    await endTrace({ id: traceId, output: { content }, usage });
+
+    const wordCount = content.split(/\s+/).length;
+    const hasActionItems = /[-•]\s/.test(content) || /\d+[.)]\s/.test(content);
+    const relevanceScore =
+      content.toLowerCase().includes("pomodoro") ||
+      content.toLowerCase().includes("goal") ||
+      content.toLowerCase().includes("commit")
+        ? 1.0
+        : 0.7;
+
+    await addFeedbackScore({
+      traceId,
+      name: "response_length",
+      value: Math.min(wordCount / 200, 1),
+      reason: `${wordCount} words`,
+    });
+    await addFeedbackScore({
+      traceId,
+      name: "actionability",
+      value: hasActionItems ? 1.0 : 0.5,
+      reason: hasActionItems ? "Contains action items" : "No action items found",
+    });
+    await addFeedbackScore({
+      traceId,
+      name: "topic_relevance",
+      value: relevanceScore,
+      reason: "Keyword match for productivity topics",
+    });
+
+    return Response.json({ content, traceId });
+  } catch (e) {
+    const errMsg = e instanceof Error ? e.message : "Unknown error";
+    await endTrace({ id: traceId, output: { error: errMsg } });
+    return Response.json({ content: `Error: ${errMsg}`, traceId }, { status: 200 });
+  }
+}
