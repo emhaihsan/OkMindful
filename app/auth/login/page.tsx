@@ -40,20 +40,29 @@ export default function LoginPage() {
 
   return (
     <div style={{ display: "grid", placeItems: "center", minHeight: "100vh", padding: 20 }}>
-      <div style={{ width: "100%", maxWidth: 420 }}>
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <div className="neo-surface" style={{ width: 56, height: 56, borderRadius: 16, background: "var(--yellow)", display: "inline-grid", placeItems: "center", fontWeight: 900, fontSize: 18 }}>
+      <div style={{ width: "100%", maxWidth: 400 }} className="animate-fade-in">
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div
+            style={{
+              width: 48, height: 48, borderRadius: 14,
+              background: "var(--yellow)",
+              display: "inline-grid", placeItems: "center",
+              fontWeight: 800, fontSize: 16,
+              border: "1.5px solid rgba(0,0,0,0.08)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            }}
+          >
             OK
           </div>
-          <h1 className="h2" style={{ marginTop: 12 }}>Welcome back</h1>
+          <h1 className="h2" style={{ marginTop: 14 }}>Welcome back</h1>
           <p className="p" style={{ marginTop: 6 }}>Sign in to your OKMindful account</p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="neo-surface" style={{ padding: 24 }}>
-            <div className="grid" style={{ gap: 14 }}>
+          <div className="neo-surface" style={{ padding: "26px 24px" }}>
+            <div className="grid" style={{ gap: 16 }}>
               <div>
-                <label className="p" style={{ fontWeight: 800, display: "block", marginBottom: 6 }}>Email</label>
+                <label className="p" style={{ fontWeight: 700, display: "block", marginBottom: 6, fontSize: 13 }}>Email</label>
                 <input
                   type="email"
                   value={email}
@@ -64,7 +73,7 @@ export default function LoginPage() {
                 />
               </div>
               <div>
-                <label className="p" style={{ fontWeight: 800, display: "block", marginBottom: 6 }}>Password</label>
+                <label className="p" style={{ fontWeight: 700, display: "block", marginBottom: 6, fontSize: 13 }}>Password</label>
                 <input
                   type="password"
                   value={password}
@@ -76,8 +85,8 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className="neo-surface-flat" style={{ padding: 10, background: "var(--pink)" }}>
-                  <div className="p" style={{ fontWeight: 800, color: "var(--ink)" }}>{error}</div>
+                <div style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(244,114,182,0.12)", border: "1.5px solid rgba(244,114,182,0.2)" }}>
+                  <div className="p" style={{ fontWeight: 600, color: "var(--ink)", fontSize: 13 }}>{error}</div>
                 </div>
               )}
 
@@ -88,15 +97,15 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <div style={{ textAlign: "center", marginTop: 16 }}>
+        <div style={{ textAlign: "center", marginTop: 20 }}>
           <p className="p">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/register" style={{ fontWeight: 800, textDecoration: "underline" }}>
+            <Link href="/auth/register" style={{ fontWeight: 700, color: "var(--ink)" }}>
               Register
             </Link>
           </p>
           <p className="p" style={{ marginTop: 8 }}>
-            <Link href="/" style={{ textDecoration: "underline" }}>Back to home</Link>
+            <Link href="/" style={{ color: "var(--ink-soft)" }}>Back to home</Link>
           </p>
         </div>
       </div>

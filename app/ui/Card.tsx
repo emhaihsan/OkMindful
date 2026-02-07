@@ -16,24 +16,26 @@ export function Card({
   ctaLabel?: string;
 }) {
   return (
-    <section className="neo-surface" style={{ padding: 16, position: "relative" }}>
+    <section className="neo-surface animate-fade-in" style={{ padding: "20px 18px 18px", position: "relative" }}>
       <div
-        className="neo-surface-flat"
         style={{
           position: "absolute",
-          top: -10,
-          left: 16,
-          padding: "6px 10px",
+          top: -11,
+          left: 18,
+          padding: "5px 12px",
           background: accent,
           borderRadius: 999,
-          fontWeight: 900,
-          boxShadow: "3px 3px 0 var(--ink)",
+          fontWeight: 700,
+          fontSize: 12,
+          letterSpacing: "-0.01em",
+          border: "1.5px solid rgba(0,0,0,0.08)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         }}
       >
         {title}
       </div>
 
-      <div style={{ paddingTop: 26 }}>{children}</div>
+      <div style={{ paddingTop: 18 }}>{children}</div>
 
       {(footer || (ctaHref && ctaLabel)) && (
         <div style={{ marginTop: 14, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>

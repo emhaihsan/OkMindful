@@ -79,11 +79,11 @@ export default function PomodoroPage() {
 
   return (
     <AppShell active="pomodoro">
-      <div style={{ padding: "20px 0 34px" }}>
-        <h1 className="h2">Timeboxing &times; Pomodoro</h1>
+      <div className="section-pad">
+        <h1 className="h2">Timeboxing · Pomodoro</h1>
         <p className="p" style={{ marginTop: 6 }}>Create tasks, set session targets, and run your focus timer.</p>
 
-        <div className="grid cols-2" style={{ marginTop: 16, alignItems: "start" }}>
+        <div className="grid cols-2" style={{ marginTop: 18, alignItems: "start" }}>
           {/* LEFT: Task list + create */}
           <div className="grid" style={{ gap: 16 }}>
             <Card title="Create Task" accent="var(--yellow)">
@@ -95,11 +95,16 @@ export default function PomodoroPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
                   className="neo-input"
                 />
-                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  <label className="p" style={{ fontWeight: 800 }}>Target sessions:</label>
-                  <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <label className="p" style={{ fontWeight: 700, fontSize: 13 }}>Target:</label>
+                  <div style={{ display: "flex", gap: 4 }}>
                     {[1, 2, 4, 6, 8].map((n) => (
-                      <button key={n} className="neo-btn" onClick={() => setNewTarget(n)} style={{ padding: "8px 12px", background: newTarget === n ? "var(--teal)" : "var(--paper)" }}>
+                      <button key={n} onClick={() => setNewTarget(n)} style={{
+                        padding: "6px 12px", fontSize: 13, fontWeight: newTarget === n ? 700 : 500,
+                        borderRadius: 10, border: newTarget === n ? "1.5px solid rgba(0,0,0,0.08)" : "1.5px solid transparent",
+                        background: newTarget === n ? "var(--teal)" : "transparent",
+                        cursor: "pointer", transition: "all 0.2s ease",
+                      }}>
                         {n}
                       </button>
                     ))}
@@ -119,26 +124,38 @@ export default function PomodoroPage() {
                   {tasks.map((t) => (
                     <div
                       key={t.id}
-                      className="neo-surface"
-                      style={{ padding: 12, background: selectedTaskId === t.id ? "var(--lime)" : "var(--paper)", cursor: "pointer" }}
+                      className="neo-surface-flat"
+                      style={{
+                        padding: 12, cursor: "pointer",
+                        border: selectedTaskId === t.id ? "1.5px solid rgba(163,230,53,0.4)" : undefined,
+                        background: selectedTaskId === t.id ? "rgba(163,230,53,0.1)" : undefined,
+                        transition: "all 0.2s ease",
+                      }}
                       onClick={() => setSelectedTaskId(t.id)}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                         <div>
                           <div className="h3">{t.title}</div>
-                          <div className="p">{t.completedSessions}/{t.targetSessions} sessions</div>
+                          <div className="p" style={{ fontSize: 12 }}>{t.completedSessions}/{t.targetSessions} sessions</div>
                         </div>
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                           {t.completedSessions >= t.targetSessions && (
-                            <span className="neo-badge" style={{ background: "var(--teal)" }}>Done</span>
+                            <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(45,212,191,0.15)" }}>Done</span>
                           )}
-                          <button className="neo-btn secondary" style={{ padding: "6px 10px" }} onClick={(e) => { e.stopPropagation(); store.deleteTask(t.id); }}>
-                            x
+                          <button
+                            onClick={(e) => { e.stopPropagation(); store.deleteTask(t.id); }}
+                            style={{
+                              padding: "4px 8px", fontSize: 12, borderRadius: 8,
+                              border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
+                              cursor: "pointer", color: "var(--ink-soft)",
+                            }}
+                          >
+                            ×
                           </button>
                         </div>
                       </div>
-                      <div style={{ marginTop: 8, height: 10, border: "2px solid var(--ink)", borderRadius: 999, background: "var(--paper)", overflow: "hidden" }}>
-                        <div style={{ width: `${Math.min(100, (t.completedSessions / t.targetSessions) * 100)}%`, height: "100%", background: "var(--yellow)" }} />
+                      <div className="progress-bar" style={{ marginTop: 8 }}>
+                        <div className="progress-bar-fill" style={{ width: `${Math.min(100, (t.completedSessions / t.targetSessions) * 100)}%`, background: "var(--yellow)" }} />
                       </div>
                     </div>
                   ))}
@@ -151,29 +168,46 @@ export default function PomodoroPage() {
           <div className="grid" style={{ gap: 16 }}>
             <Card title="Timer" accent="var(--pink)">
               {selectedTask && (
-                <div className="neo-badge" style={{ background: "var(--lime)", marginBottom: 10 }}>
+                <div style={{ marginBottom: 12, padding: "4px 12px", borderRadius: 999, display: "inline-flex", fontSize: 12, fontWeight: 600, background: "rgba(163,230,53,0.12)" }}>
                   {selectedTask.title} ({selectedTask.completedSessions}/{selectedTask.targetSessions})
                 </div>
               )}
               {!selectedTask && tasks.length > 0 && (
-                <div className="p" style={{ marginBottom: 10, fontWeight: 800 }}>Select a task on the left to begin</div>
+                <div className="p" style={{ marginBottom: 12, fontWeight: 600 }}>Select a task on the left to begin</div>
               )}
 
-              <div className="neo-surface" style={{ padding: 18, background: "var(--bg)" }}>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <button className="neo-btn" style={{ background: mode === "focus" ? "var(--yellow)" : "var(--paper)" }} onClick={() => switchMode("focus")}>Focus 25m</button>
-                  <button className="neo-btn" style={{ background: mode === "break" ? "var(--pink)" : "var(--paper)" }} onClick={() => switchMode("break")}>Break 5m</button>
+              <div className="neo-surface-flat" style={{ padding: 20 }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <button onClick={() => switchMode("focus")} style={{
+                    padding: "7px 14px", fontSize: 13, fontWeight: mode === "focus" ? 700 : 500,
+                    borderRadius: 10, border: mode === "focus" ? "1.5px solid rgba(0,0,0,0.08)" : "1.5px solid transparent",
+                    background: mode === "focus" ? "var(--yellow)" : "transparent",
+                    cursor: "pointer", transition: "all 0.2s ease",
+                  }}>Focus 25m</button>
+                  <button onClick={() => switchMode("break")} style={{
+                    padding: "7px 14px", fontSize: 13, fontWeight: mode === "break" ? 700 : 500,
+                    borderRadius: 10, border: mode === "break" ? "1.5px solid rgba(0,0,0,0.08)" : "1.5px solid transparent",
+                    background: mode === "break" ? "var(--pink)" : "transparent",
+                    cursor: "pointer", transition: "all 0.2s ease",
+                  }}>Break 5m</button>
                 </div>
 
-                <div className="neo-surface" style={{ marginTop: 14, padding: 18, background: mode === "focus" ? "var(--yellow)" : "var(--pink)", textAlign: "center" }}>
-                  <div className="h1" style={{ fontSize: 64 }}>{fmt(seconds)}</div>
-                  <div className="p" style={{ color: "var(--ink)", fontWeight: 900 }}>
-                    {mode === "focus" ? "FOCUS" : "BREAK"} &bull; Session {completedCount + 1}
+                <div style={{
+                  marginTop: 16, padding: "28px 18px", textAlign: "center",
+                  borderRadius: 18,
+                  background: mode === "focus"
+                    ? "linear-gradient(135deg, rgba(251,191,36,0.15), rgba(251,191,36,0.08))"
+                    : "linear-gradient(135deg, rgba(244,114,182,0.15), rgba(244,114,182,0.08))",
+                  border: `1.5px solid ${mode === "focus" ? "rgba(251,191,36,0.2)" : "rgba(244,114,182,0.2)"}`,
+                }}>
+                  <div className="h1" style={{ fontSize: 64, fontWeight: 800 }}>{fmt(seconds)}</div>
+                  <div className="p" style={{ color: "var(--ink)", fontWeight: 700, marginTop: 4, fontSize: 13 }}>
+                    {mode === "focus" ? "FOCUS" : "BREAK"} · Session {completedCount + 1}
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
-                  <button className="neo-btn" onClick={() => setRunning((r) => !r)} style={{ background: "var(--teal)" }}>
+                <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+                  <button className="neo-btn" onClick={() => setRunning((r) => !r)} style={{ background: "var(--teal)", padding: "10px 20px" }}>
                     {running ? "Pause" : "Start"}
                   </button>
                   <button className="neo-btn secondary" onClick={reset}>Reset</button>
@@ -188,13 +222,13 @@ export default function PomodoroPage() {
                 <Stat label="Streak" value={String(streakVal)} tint="var(--pink)" />
               </div>
               {last7.length > 0 && (
-                <div className="neo-surface" style={{ padding: 14, marginTop: 12 }}>
-                  <div className="h3">Recent Sessions</div>
-                  <div className="grid" style={{ gap: 6, marginTop: 8 }}>
+                <div style={{ marginTop: 14 }}>
+                  <div className="h3" style={{ marginBottom: 8 }}>Recent Sessions</div>
+                  <div className="grid" style={{ gap: 6 }}>
                     {last7.map((s) => (
-                      <div key={s.id} className="neo-surface-flat" style={{ padding: "8px 10px", display: "flex", justifyContent: "space-between", gap: 8, background: s.completed ? "var(--bg)" : "var(--paper)" }}>
+                      <div key={s.id} className="neo-surface-flat" style={{ padding: "8px 12px", display: "flex", justifyContent: "space-between", gap: 8 }}>
                         <span className="p" style={{ fontWeight: 700 }}>{s.taskTitle}</span>
-                        <span className="p">{s.durationMinutes}m &bull; {new Date(s.endedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                        <span className="p">{s.durationMinutes}m · {new Date(s.endedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
                       </div>
                     ))}
                   </div>

@@ -51,23 +51,29 @@ export default function ProfilePage() {
 
   return (
     <AppShell active="profile">
-      <div style={{ padding: "20px 0 34px" }}>
+      <div className="section-pad">
         <div className="grid cols-2" style={{ alignItems: "start" }}>
-          <Card title="User" accent="var(--yellow)">
+          <Card title="Profile" accent="var(--yellow)">
             <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
               <div
-                className="neo-surface"
-                style={{ width: 84, height: 84, borderRadius: 24, background: "var(--blue)", display: "grid", placeItems: "center", fontWeight: 900, fontSize: 24 }}
+                style={{
+                  width: 72, height: 72, borderRadius: 20,
+                  background: "linear-gradient(135deg, var(--blue), var(--teal))",
+                  display: "grid", placeItems: "center",
+                  fontWeight: 800, fontSize: 22, color: "white",
+                  border: "1.5px solid rgba(0,0,0,0.06)",
+                  boxShadow: "0 4px 12px rgba(96,165,250,0.15)",
+                }}
               >
-                OK
+                {displayName.slice(0, 2).toUpperCase()}
               </div>
               <div>
                 <div className="h2">{displayName}</div>
-                <div className="p">{profile?.email || "Resolution Builder"} &bull; {streakVal}-day streak</div>
-                <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
-                  <span className="neo-badge" style={{ background: "var(--teal)" }}>Streak {streakVal}</span>
+                <div className="p">{profile?.email || "Resolution Builder"} · {streakVal}-day streak</div>
+                <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+                  <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(45,212,191,0.15)" }}>Streak {streakVal}</span>
                   {failedStake === 0 && commitments.length > 0 && (
-                    <span className="neo-badge" style={{ background: "var(--pink)" }}>Stake Safe</span>
+                    <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(244,114,182,0.12)" }}>Stake Safe</span>
                   )}
                 </div>
               </div>
@@ -86,16 +92,21 @@ export default function ProfilePage() {
           </Card>
 
           <Card title="Statistics" accent="var(--pink)">
-            <div className="grid" style={{ gap: 12 }}>
-              <div className="neo-surface" style={{ padding: 14 }}>
+            <div className="grid" style={{ gap: 14 }}>
+              <div>
                 <div className="h3">Focus — Last 7 Days</div>
-                <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "flex-end" }}>
+                <div style={{ display: "flex", gap: 8, marginTop: 14, alignItems: "flex-end" }}>
                   {weeklyBars.map((b, idx) => (
                     <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1 }}>
-                      <div className="p" style={{ fontSize: 11, fontWeight: 800 }}>{b.minutes}m</div>
+                      <div className="p" style={{ fontSize: 11, fontWeight: 700 }}>{b.minutes}m</div>
                       <div
-                        className="neo-surface-flat"
-                        style={{ width: "100%", minHeight: 10, height: Math.max(10, (b.minutes / maxMin) * 80), background: COLORS[idx], borderRadius: 10 }}
+                        style={{
+                          width: "100%", minHeight: 10,
+                          height: Math.max(10, (b.minutes / maxMin) * 80),
+                          background: COLORS[idx], borderRadius: 8,
+                          opacity: 0.7,
+                          transition: "height 0.3s ease",
+                        }}
                       />
                       <div className="p" style={{ fontSize: 11 }}>{b.day}</div>
                     </div>
@@ -104,23 +115,34 @@ export default function ProfilePage() {
               </div>
 
               {badges.length > 0 && (
-                <div className="neo-surface" style={{ padding: 14 }}>
+                <div>
                   <div className="h3">Badges</div>
-                  <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
                     {badges.map((b) => (
-                      <span key={b.label} className="neo-badge" style={{ background: b.tint }}>{b.label}</span>
+                      <span key={b.label} style={{
+                        padding: "4px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                        background: b.tint, border: "1.5px solid rgba(0,0,0,0.06)",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                      }}>{b.label}</span>
                     ))}
                   </div>
                 </div>
               )}
 
-              <div className="neo-surface" style={{ padding: 14 }}>
+              <div className="neo-surface-flat" style={{ padding: 14 }}>
                 <div className="h3">Summary</div>
-                <div className="p" style={{ marginTop: 6 }}>
-                  - {sessions.length} total pomodoro sessions<br />
-                  - {totalFocus} minutes of total focus<br />
-                  - {commitments.filter((c) => c.status === "active").length} active commitments<br />
-                  - {failedStake} failed stakes
+                <div className="grid" style={{ gap: 6, marginTop: 8 }}>
+                  {[
+                    { label: "Total sessions", value: String(sessions.length) },
+                    { label: "Total focus", value: `${totalFocus}m` },
+                    { label: "Active commitments", value: String(commitments.filter((c) => c.status === "active").length) },
+                    { label: "Failed stakes", value: String(failedStake) },
+                  ].map((item) => (
+                    <div key={item.label} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+                      <span className="p" style={{ fontWeight: 600, fontSize: 13 }}>{item.label}</span>
+                      <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>{item.value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

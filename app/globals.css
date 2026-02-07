@@ -1,20 +1,39 @@
+/* ═══════════════════════════════════════════════════════
+   OKMindful — Liquid Glass Design System (2026)
+   Inspired by: Adaptive Transparency, Calm UX,
+   Functional Motion, Anti-Perfect Personality
+   ═══════════════════════════════════════════════════════ */
+
 :root {
-  --bg: #faf8f4;
-  --ink: #0a0a0a;
-  --paper: #ffffff;
+  --bg: #f4f2ee;
+  --bg-warm: #ece8e1;
+  --ink: #1a1a1a;
+  --ink-soft: rgba(26, 26, 26, 0.6);
+  --paper: rgba(255, 255, 255, 0.72);
+  --paper-solid: #ffffff;
 
-  --pink: #ff61d8;
-  --yellow: #ffd24a;
-  --teal: #15c6b7;
-  --blue: #7aa7ff;
-  --orange: #ff8b3d;
-  --lime: #b6ff4a;
-  --violet: #c084fc;
+  /* Softer, more refined palette */
+  --pink: #f472b6;
+  --yellow: #fbbf24;
+  --teal: #2dd4bf;
+  --blue: #60a5fa;
+  --orange: #fb923c;
+  --lime: #a3e635;
+  --violet: #a78bfa;
 
-  --border: 3px;
-  --shadow-x: 5px;
-  --shadow-y: 5px;
-  --radius: 16px;
+  /* Glass tokens */
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-shadow: rgba(0, 0, 0, 0.06);
+  --glass-blur: 16px;
+
+  --border: 1.5px;
+  --radius: 20px;
+  --radius-sm: 14px;
+  --radius-xs: 10px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 * {
@@ -43,92 +62,121 @@ a {
   color: var(--ink);
 }
 
+/* ─── Glass Surface (primary card) ─── */
 .neo-surface {
-  background: var(--paper);
-  border: var(--border) solid var(--ink);
-  box-shadow: var(--shadow-x) var(--shadow-y) 0 var(--ink);
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: var(--border) solid var(--glass-border);
   border-radius: var(--radius);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow:
+    0 1px 3px var(--glass-shadow),
+    0 8px 24px var(--glass-shadow);
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
 }
 
+.neo-surface:hover {
+  box-shadow:
+    0 2px 6px var(--glass-shadow),
+    0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Flat Surface (inner cards, list items) ─── */
 .neo-surface-flat {
-  background: var(--paper);
-  border: var(--border) solid var(--ink);
-  border-radius: var(--radius);
-  transition: background 0.15s ease;
+  background: rgba(255, 255, 255, 0.45);
+  border: var(--border) solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-sm);
+  transition: background 0.25s var(--ease-out), border-color 0.25s var(--ease-out);
 }
 
+.neo-surface-flat:hover {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Buttons ─── */
 .neo-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 18px;
-  border: var(--border) solid var(--ink);
-  border-radius: 14px;
+  padding: 10px 18px;
+  border: var(--border) solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-sm);
   background: var(--yellow);
-  box-shadow: 4px 4px 0 var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 14px;
   letter-spacing: -0.01em;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition: all 0.2s var(--ease-out);
   user-select: none;
 }
 
 .neo-btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 var(--ink);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  filter: brightness(1.04);
 }
 
 .neo-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--ink);
+  transform: translateY(0.5px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .neo-btn:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
-  box-shadow: 4px 4px 0 var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  filter: none;
 }
 
 .neo-btn.secondary {
   background: var(--paper);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
+/* ─── Badges ─── */
 .neo-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border: 2px solid var(--ink);
+  gap: 5px;
+  padding: 4px 10px;
+  border: var(--border) solid rgba(0, 0, 0, 0.08);
   border-radius: 999px;
-  font-weight: 800;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 12px;
   background: var(--blue);
-  box-shadow: 2px 2px 0 var(--ink);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   white-space: nowrap;
+  transition: all 0.2s var(--ease-out);
 }
 
+/* ─── Inputs ─── */
 .neo-input {
   width: 100%;
   padding: 11px 14px;
-  border-radius: 12px;
-  border: 3px solid var(--ink);
-  box-shadow: 4px 4px 0 var(--ink);
+  border-radius: var(--radius-sm);
+  border: var(--border) solid rgba(0, 0, 0, 0.1);
   outline: none;
-  background: var(--paper);
-  font-weight: 600;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-weight: 500;
   font-size: 14px;
-  transition: box-shadow 0.12s ease, transform 0.12s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s var(--ease-out);
 }
 
 .neo-input:focus {
-  box-shadow: 5px 5px 0 var(--ink);
-  transform: translate(-1px, -1px);
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.15), 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.8);
 }
 
+/* ─── Layout ─── */
 .container {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
@@ -153,46 +201,50 @@ a {
   }
 }
 
+/* ─── Typography ─── */
 .h1 {
-  font-size: clamp(38px, 5vw, 68px);
-  line-height: 0.96;
-  letter-spacing: -0.05em;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
   margin: 0;
+  font-weight: 800;
 }
 
 .h2 {
-  font-size: 26px;
-  line-height: 1.1;
-  letter-spacing: -0.04em;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   margin: 0;
+  font-weight: 700;
 }
 
 .h3 {
-  font-size: 16px;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
   margin: 0;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .p {
   margin: 0;
-  color: rgba(10, 10, 10, 0.72);
-  font-weight: 500;
+  color: var(--ink-soft);
+  font-weight: 450;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .kbd {
-  border: 2px solid var(--ink);
+  border: var(--border) solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   padding: 4px 8px;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 13px;
   background: var(--paper);
-  box-shadow: 2px 2px 0 var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+/* ─── Page Layout ─── */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -206,17 +258,46 @@ a {
   padding: 24px 0 40px;
 }
 
+/* ─── Progress Bar ─── */
 .progress-bar {
-  height: 10px;
-  border: 2px solid var(--ink);
+  height: 8px;
+  border: none;
   border-radius: 999px;
-  background: var(--paper);
+  background: rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: var(--yellow);
+  background: linear-gradient(90deg, var(--teal), var(--blue));
   border-radius: 999px;
-  transition: width 0.3s ease;
+  transition: width 0.5s var(--ease-out);
+}
+
+/* ─── Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s var(--ease-out) both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s var(--ease-out) both;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }

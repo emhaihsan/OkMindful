@@ -15,6 +15,8 @@ export default function ChatPage() {
   const activeCommitments = commitments.filter((c) => c.status === "active");
   const todayMin = store.todayFocusMinutes();
   const todayS = store.todaySessions();
+  const streakVal = store.streak();
+  const tracedCount = messages.filter((m) => m.opikTraceId).length;
 
   async function send(text: string) {
     if (!text.trim() || loading) return;
@@ -44,36 +46,72 @@ export default function ChatPage() {
     }
   }
 
-  function handleQuickPrompt(prompt: string) {
-    send(prompt);
-  }
-
   return (
     <AppShell active="chat">
-      <div style={{ padding: "20px 0 34px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <h1 className="h2">Chat &bull; Productivity Advisor</h1>
-            <p className="p" style={{ marginTop: 6 }}>
-              Gemini Flash-powered AI advisor. Every message is traced by Opik.
-            </p>
+      <div className="section-pad">
+        {/* ─── AI Agent Header ─── */}
+        <div className="animate-slide-up" style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 14,
+              background: "linear-gradient(135deg, var(--blue), var(--teal))",
+              display: "grid", placeItems: "center",
+              fontSize: 22, boxShadow: "0 2px 10px rgba(96,165,250,0.2)",
+            }}>
+              🤖
+            </div>
+            <div>
+              <h1 className="h2" style={{ fontSize: 22 }}>AI Productivity Agent</h1>
+              <p className="p" style={{ marginTop: 2, fontSize: 13 }}>
+                Gemini Flash · Every response traced by Opik · Context-aware coaching
+              </p>
+            </div>
           </div>
-          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <span className="neo-badge" style={{ background: loading ? "var(--orange)" : "var(--teal)" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{
+              padding: "4px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+              background: loading ? "rgba(251,146,60,0.15)" : "rgba(45,212,191,0.15)",
+            }}>
               {loading ? "Thinking..." : "Online"}
             </span>
-            <button className="neo-btn secondary" onClick={store.clearMessages}>Reset chat</button>
+            {tracedCount > 0 && (
+              <span style={{
+                padding: "4px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600,
+                background: "rgba(96,165,250,0.12)",
+              }}>
+                {tracedCount} Opik traces
+              </span>
+            )}
+            <button
+              onClick={store.clearMessages}
+              style={{
+                padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
+                cursor: "pointer", color: "var(--ink-soft)", transition: "all 0.2s ease",
+              }}
+            >
+              Reset
+            </button>
           </div>
         </div>
 
-        <div className="grid cols-2" style={{ marginTop: 16, alignItems: "start" }}>
-          <Card title="Conversation" accent="var(--yellow)">
-            <div style={{ maxHeight: 500, overflowY: "auto" }}>
+        <div className="grid cols-2" style={{ marginTop: 18, alignItems: "start" }}>
+          {/* ─── Conversation Panel ─── */}
+          <div className="neo-surface animate-fade-in" style={{ padding: 0, display: "flex", flexDirection: "column" }}>
+            {/* Messages */}
+            <div style={{ maxHeight: 520, overflowY: "auto", padding: "18px 18px 8px" }}>
               <div className="grid" style={{ gap: 10 }}>
                 {messages.length === 0 && (
-                  <div className="neo-surface-flat" style={{ padding: 14, background: "var(--bg)" }}>
-                    <div className="p" style={{ fontWeight: 800 }}>No messages yet.</div>
-                    <div className="p" style={{ marginTop: 4 }}>Type a message or use a quick prompt on the right.</div>
+                  <div style={{
+                    padding: "24px 16px", textAlign: "center",
+                    background: "rgba(0,0,0,0.02)", borderRadius: 16,
+                  }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>🤖</div>
+                    <div className="h3">Start a conversation</div>
+                    <div className="p" style={{ marginTop: 6 }}>
+                      Ask me to plan your week, review your progress, or help with stake strategies.
+                      Every response is traced by Opik for full observability.
+                    </div>
                   </div>
                 )}
                 {messages.map((m) => {
@@ -81,124 +119,150 @@ export default function ChatPage() {
                   return (
                     <div
                       key={m.id}
-                      className="neo-surface"
                       style={{
-                        padding: 12,
-                        background: isUser ? "var(--blue)" : "var(--paper)",
+                        padding: "12px 14px",
+                        borderRadius: 16,
+                        background: isUser ? "rgba(96,165,250,0.12)" : "rgba(255,255,255,0.6)",
+                        border: `1.5px solid ${isUser ? "rgba(96,165,250,0.15)" : "rgba(0,0,0,0.05)"}`,
                         marginLeft: isUser ? "auto" : 0,
-                        maxWidth: 520,
+                        maxWidth: "85%",
                       }}
                     >
-                      <div className="h3">{isUser ? "You" : "Advisor"}</div>
-                      <div className="p" style={{ marginTop: 6, color: "var(--ink)", whiteSpace: "pre-wrap" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                        <div className="h3" style={{ fontSize: 13 }}>{isUser ? "You" : "AI Agent"}</div>
+                        {m.opikTraceId && (
+                          <span style={{
+                            padding: "1px 7px", borderRadius: 999, fontSize: 10, fontWeight: 600,
+                            background: "rgba(96,165,250,0.1)", color: "var(--ink-soft)",
+                          }}>
+                            trace: {m.opikTraceId.slice(0, 8)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="p" style={{ marginTop: 4, color: "var(--ink)", whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
                         {m.content}
                       </div>
-                      {m.opikTraceId && (
-                        <div className="p" style={{ marginTop: 6, fontSize: 11, opacity: 0.5 }}>
-                          Opik trace: {m.opikTraceId.slice(0, 8)}...
-                        </div>
-                      )}
                     </div>
                   );
                 })}
                 {loading && (
-                  <div className="neo-surface" style={{ padding: 12 }}>
-                    <div className="h3">Advisor</div>
-                    <div className="p" style={{ marginTop: 6 }}>Typing...</div>
+                  <div style={{
+                    padding: "12px 14px", borderRadius: 16,
+                    background: "rgba(255,255,255,0.6)", border: "1.5px solid rgba(0,0,0,0.05)",
+                    maxWidth: "85%",
+                  }}>
+                    <div className="h3" style={{ fontSize: 13 }}>AI Agent</div>
+                    <div className="p animate-pulse-soft" style={{ marginTop: 4 }}>Thinking...</div>
                   </div>
                 )}
                 <div ref={bottomRef} />
               </div>
             </div>
 
-            <div className="neo-surface-flat" style={{ padding: 12, background: "var(--bg)", marginTop: 10 }}>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {/* Input Area */}
+            <div style={{ padding: "12px 18px 18px", borderTop: "1px solid rgba(0,0,0,0.04)" }}>
+              <div style={{ display: "flex", gap: 8 }}>
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && send(input)}
-                  placeholder="Type a message..."
+                  placeholder="Ask your AI agent..."
                   disabled={loading}
-                  style={{
-                    flex: 1,
-                    minWidth: 220,
-                    padding: "12px 12px",
-                    borderRadius: 12,
-                    border: "3px solid var(--ink)",
-                    boxShadow: "4px 4px 0 var(--ink)",
-                    outline: "none",
-                    background: "var(--paper)",
-                    fontWeight: 600,
-                  }}
+                  className="neo-input"
+                  style={{ flex: 1 }}
                 />
-                <button className="neo-btn" onClick={() => send(input)} disabled={loading}>
+                <button className="neo-btn" onClick={() => send(input)} disabled={loading} style={{ padding: "10px 18px" }}>
                   Send
                 </button>
               </div>
             </div>
-          </Card>
+          </div>
 
-          <div className="grid" style={{ gap: 16 }}>
+          {/* ─── Right Sidebar ─── */}
+          <div className="grid" style={{ gap: 14 }}>
+            {/* Quick Prompts */}
             <Card title="Quick Prompts" accent="var(--pink)">
-              <div className="grid" style={{ gap: 10 }}>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <button className="neo-btn" style={{ background: "var(--yellow)" }} onClick={() => handleQuickPrompt("Create a 7-day pomodoro plan for me. I have " + tasks.length + " active tasks and " + activeCommitments.length + " active commitments.")}>
-                    7-Day Plan
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[
+                  { label: "📋 7-Day Plan", prompt: `Create a 7-day pomodoro plan. I have ${tasks.length} tasks and ${activeCommitments.length} active commitments. Streak: ${streakVal} days.` },
+                  { label: "🎯 Stake Rules", prompt: `Help me set safe stake rules. I have ${activeCommitments.length} active commitments.` },
+                  { label: "📊 Today Review", prompt: `Review my productivity today: ${todayS.length} sessions, ${todayMin}m focus. Streak: ${streakVal} days. Suggestions?` },
+                  { label: "🔍 Diagnose", prompt: "I've been feeling unproductive. Help me diagnose the issue and give concrete solutions." },
+                  { label: "💪 Motivate", prompt: `Motivate me to stay consistent with my 2026 resolutions! Streak: ${streakVal} days.` },
+                  { label: "⚡ Optimize", prompt: `Analyze my work patterns and suggest optimizations. ${todayS.length} sessions today, ${tasks.length} tasks, ${activeCommitments.length} commitments.` },
+                ].map((q) => (
+                  <button
+                    key={q.label}
+                    onClick={() => send(q.prompt)}
+                    disabled={loading}
+                    className="neo-btn secondary"
+                    style={{ padding: "7px 14px", fontSize: 13 }}
+                  >
+                    {q.label}
                   </button>
-                  <button className="neo-btn" style={{ background: "var(--teal)" }} onClick={() => handleQuickPrompt("Help me set safe stake rules for my commitments. I have " + activeCommitments.length + " active commitments.")}>
-                    Stake Rules
-                  </button>
-                  <button className="neo-btn" style={{ background: "var(--lime)" }} onClick={() => handleQuickPrompt("Review my productivity today: " + todayS.length + " pomodoro sessions, " + todayMin + " minutes of focus. My streak is " + store.streak() + " days. Any suggestions?")}>
-                    Today Review
-                  </button>
-                </div>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <button className="neo-btn" style={{ background: "var(--blue)" }} onClick={() => handleQuickPrompt("I've been feeling unproductive lately. Help me diagnose the issue and give concrete solutions.")}>
-                    Diagnose
-                  </button>
-                  <button className="neo-btn" style={{ background: "var(--pink)" }} onClick={() => handleQuickPrompt("Motivate me to stay consistent with my 2026 resolutions!")}>
-                    Motivate
-                  </button>
-                </div>
+                ))}
               </div>
             </Card>
 
-            <Card title="Context Snapshot" accent="var(--teal)">
-              <div className="grid" style={{ gap: 8 }}>
-                <div className="neo-surface-flat" style={{ padding: 10, display: "flex", justifyContent: "space-between", background: "var(--bg)" }}>
-                  <span className="p" style={{ fontWeight: 800 }}>Active Commitments</span>
-                  <span className="p">{activeCommitments.length}</span>
-                </div>
-                <div className="neo-surface-flat" style={{ padding: 10, display: "flex", justifyContent: "space-between", background: "var(--bg)" }}>
-                  <span className="p" style={{ fontWeight: 800 }}>Active Tasks</span>
-                  <span className="p">{tasks.length}</span>
-                </div>
-                <div className="neo-surface-flat" style={{ padding: 10, display: "flex", justifyContent: "space-between", background: "var(--bg)" }}>
-                  <span className="p" style={{ fontWeight: 800 }}>Sessions Today</span>
-                  <span className="p">{todayS.length} ({todayMin}m)</span>
-                </div>
-                <div className="neo-surface-flat" style={{ padding: 10, display: "flex", justifyContent: "space-between", background: "var(--bg)" }}>
-                  <span className="p" style={{ fontWeight: 800 }}>Streak</span>
-                  <span className="p">{store.streak()} days</span>
-                </div>
+            {/* Context Snapshot */}
+            <Card title="Agent Context" accent="var(--teal)">
+              <div className="p" style={{ fontSize: 12, marginBottom: 10 }}>
+                The AI agent sees your live data to give personalized advice:
+              </div>
+              <div className="grid" style={{ gap: 6 }}>
+                {[
+                  { label: "Active Commitments", value: String(activeCommitments.length) },
+                  { label: "Active Tasks", value: String(tasks.length) },
+                  { label: "Sessions Today", value: `${todayS.length} (${todayMin}m)` },
+                  { label: "Streak", value: `${streakVal} days` },
+                ].map((item) => (
+                  <div key={item.label} className="neo-surface-flat" style={{ padding: "8px 12px", display: "flex", justifyContent: "space-between" }}>
+                    <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>{item.label}</span>
+                    <span className="p" style={{ fontWeight: 600, fontSize: 13 }}>{item.value}</span>
+                  </div>
+                ))}
               </div>
             </Card>
 
-            <Card title="Opik Tracing" accent="var(--blue)">
-              <div className="p">
-                Every advisor message is traced via the Opik REST API.
-                Feedback scores: response_length, actionability, topic_relevance.
+            {/* Opik Observability */}
+            <div
+              style={{
+                padding: "16px 18px",
+                background: "linear-gradient(135deg, rgba(96,165,250,0.08), rgba(167,139,250,0.08))",
+                border: "1.5px solid rgba(96,165,250,0.12)",
+                borderRadius: 20,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 8,
+                  background: "linear-gradient(135deg, var(--blue), var(--violet))",
+                  display: "grid", placeItems: "center", fontSize: 14,
+                  boxShadow: "0 2px 6px rgba(96,165,250,0.15)",
+                }}>
+                  📊
+                </div>
+                <div className="h3" style={{ fontSize: 15 }}>Opik Observability</div>
               </div>
-              <div className="p" style={{ marginTop: 8, fontWeight: 800 }}>
-                Configure in .env.local:
+              <div className="p" style={{ fontSize: 13 }}>
+                Every AI response is traced via the Opik REST API with feedback scores:
+                <b> response_length</b>, <b>actionability</b>, <b>topic_relevance</b>.
               </div>
-              <div className="neo-surface-flat" style={{ padding: 10, marginTop: 6, background: "var(--bg)", fontFamily: "monospace", fontSize: 12 }}>
+              {tracedCount > 0 && (
+                <div style={{
+                  marginTop: 10, padding: "6px 12px", borderRadius: 10,
+                  background: "rgba(255,255,255,0.5)", fontSize: 13,
+                }}>
+                  <span className="p" style={{ fontWeight: 700 }}>{tracedCount} traces recorded</span> in this session
+                </div>
+              )}
+              <div className="neo-surface-flat" style={{ padding: "8px 12px", marginTop: 10, fontFamily: "monospace", fontSize: 11, lineHeight: 1.6 }}>
                 GEMINI_API_KEY=your_key<br />
                 OPIK_API_KEY=your_opik_key<br />
                 OPIK_WORKSPACE=your_workspace<br />
                 OPIK_PROJECT=okmindful
               </div>
-            </Card>
+            </div>
           </div>
         </div>
       </div>
