@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppShell } from "../ui/AppShell";
 import { Card } from "../ui/Card";
 import { useStore } from "../lib/store";
@@ -17,6 +17,14 @@ export default function ChatPage() {
   const todayS = store.todaySessions();
   const streakVal = store.streak();
   const tracedCount = messages.filter((m) => m.opikTraceId).length;
+  const [promptInfo, setPromptInfo] = useState<{
+    version: string; optimized: boolean; optimizer: string | null;
+    meta: { best_score?: number; n_trials?: number } | null;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/prompt-info").then(r => r.json()).then(setPromptInfo).catch(() => {});
+  }, []);
 
   async function send(text: string) {
     if (!text.trim() || loading) return;
@@ -224,7 +232,7 @@ export default function ChatPage() {
               </div>
             </Card>
 
-            {/* Opik Observability */}
+            {/* Opik Observability & Optimization */}
             <div
               style={{
                 padding: "16px 18px",
@@ -256,6 +264,39 @@ export default function ChatPage() {
                   <span className="p" style={{ fontWeight: 700 }}>{tracedCount} traces recorded</span> in this session
                 </div>
               )}
+
+              {/* Prompt Optimization Status */}
+              {promptInfo && (
+                <div style={{
+                  marginTop: 12, padding: "10px 12px", borderRadius: 12,
+                  background: promptInfo.optimized ? "rgba(45,212,191,0.1)" : "rgba(0,0,0,0.03)",
+                  border: `1.5px solid ${promptInfo.optimized ? "rgba(45,212,191,0.15)" : "rgba(0,0,0,0.04)"}`,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 14 }}>{promptInfo.optimized ? "⚡" : "📝"}</span>
+                    <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>
+                      {promptInfo.optimized ? "Optimized Prompt Active" : "Default Prompt"}
+                    </span>
+                  </div>
+                  {promptInfo.optimized && promptInfo.optimizer && (
+                    <div className="p" style={{ fontSize: 12, marginTop: 4 }}>
+                      Optimizer: {promptInfo.optimizer}
+                      {promptInfo.meta?.best_score != null && (
+                        <> · Score: {(promptInfo.meta.best_score * 100).toFixed(1)}%</>
+                      )}
+                      {promptInfo.meta?.n_trials != null && (
+                        <> · {promptInfo.meta.n_trials} trials</>
+                      )}
+                    </div>
+                  )}
+                  {!promptInfo.optimized && (
+                    <div className="p" style={{ fontSize: 12, marginTop: 4 }}>
+                      Run <code style={{ fontSize: 11, padding: "1px 4px", borderRadius: 4, background: "rgba(0,0,0,0.04)" }}>python optimizer/optimize.py</code> to auto-optimize
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="neo-surface-flat" style={{ padding: "8px 12px", marginTop: 10, fontFamily: "monospace", fontSize: 11, lineHeight: 1.6 }}>
                 GEMINI_API_KEY=your_key<br />
                 OPIK_API_KEY=your_opik_key<br />

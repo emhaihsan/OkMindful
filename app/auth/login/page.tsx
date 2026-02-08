@@ -22,11 +22,11 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     const err = await signIn(email.trim(), password);
-    setLoading(false);
     if (err) {
+      setLoading(false);
       setError(err);
     } else {
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     }
   }
 

@@ -1,6 +1,8 @@
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 import { createTrace, endTrace, createSpan, addFeedbackScore } from "../../lib/opik";
 
-const SYSTEM_PROMPT = `You are a Productivity Advisor AI for OKMindful, a commitment & accountability app for 2026 New Year's resolutions.
+const DEFAULT_SYSTEM_PROMPT = `You are a Productivity Advisor AI for OKMindful, a commitment & accountability app for 2026 New Year's resolutions.
 
 Your role:
 - Help users plan goals and break them into actionable steps
@@ -11,7 +13,36 @@ Your role:
 
 Be concise, practical, and actionable. Use bullet points when listing steps. Keep responses under 200 words unless the user asks for detail. Always respond in the same language the user writes in.`;
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+/**
+ * Load the optimized prompt from the optimizer output if available.
+ * The optimizer (Python/Opik Agent Optimizer SDK) writes the best prompt
+ * to optimizer/optimized_prompt.txt after running optimization trials.
+ * Falls back to the default prompt if the file doesn't exist.
+ */
+function loadSystemPrompt(): { prompt: string; version: string } {
+  const optimizedPaths = [
+    join(process.cwd(), "..", "optimizer", "optimized_prompt_hrpo.txt"),
+    join(process.cwd(), "..", "optimizer", "optimized_prompt.txt"),
+  ];
+  for (const p of optimizedPaths) {
+    try {
+      if (existsSync(p)) {
+        const content = readFileSync(p, "utf-8").trim();
+        if (content.length > 50) {
+          const version = p.includes("hrpo") ? "optimized-hrpo" : "optimized-meta";
+          return { prompt: content, version };
+        }
+      }
+    } catch {
+      // fall through
+    }
+  }
+  return { prompt: DEFAULT_SYSTEM_PROMPT, version: "v1-default" };
+}
+
+const { prompt: SYSTEM_PROMPT, version: PROMPT_VERSION } = loadSystemPrompt();
+
+const GEMINI_MODEL = "gemini-2.5-flash";
 
 export async function POST(req: Request) {
   const { messages } = (await req.json()) as {
@@ -39,7 +70,7 @@ export async function POST(req: Request) {
     name: "productivity-advisor-chat",
     input: { messages, message_count: messages.length },
     startTime,
-    metadata: { model: GEMINI_MODEL, system_prompt_version: "v1" },
+    metadata: { model: GEMINI_MODEL, system_prompt_version: PROMPT_VERSION },
   });
 
   const geminiContents = messages.map((m) => ({

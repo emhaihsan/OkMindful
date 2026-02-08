@@ -44,3 +44,8 @@ next-env.d.ts
 DEMO.md
 DEVELOPMENT.md
 OPIK_SETUP.md
+
+# supabase
+supabase/
+supabase/.temp
+supabase/.backup

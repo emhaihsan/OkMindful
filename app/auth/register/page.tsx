@@ -39,11 +39,11 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     const err = await signUp(email.trim(), password, username.trim());
-    setLoading(false);
     if (err) {
+      setLoading(false);
       setError(err);
     } else {
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     }
   }
 
