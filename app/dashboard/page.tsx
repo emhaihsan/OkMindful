@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const todayS = store.todaySessions();
   const todayMin = store.todayFocusMinutes();
   const streakVal = store.streak();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })();
   const recentSessions = sessions.slice(0, 5);
   const uncheckedToday = activeCommitments.filter((c) => !c.dailyCheckins[today]);
 
@@ -43,13 +43,11 @@ export default function DashboardPage() {
               : "No active commitments yet. Start one to build accountability."
             }
             {todayMin > 0 && ` ${todayMin} minutes focused today.`}
-            {streakVal > 0 && ` ${streakVal}-day streak.`}
           </p>
         </div>
 
         {/* ─── Stats Row ─── */}
         <div className="grid cols-4" style={{ marginTop: 18 }}>
-          <Stat label="Streak" value={`${streakVal} days`} tint="var(--yellow)" />
           <Stat label="Active Stake" value={`$${totalStake}`} tint="var(--teal)" />
           <Stat label="Today" value={`${todayMin}m · ${todayS.length} sess.`} tint="var(--blue)" />
           <Stat label="Validating" value={String(activeValidating.length)} tint="var(--orange)" />

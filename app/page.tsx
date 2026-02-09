@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -37,19 +40,173 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { num: "01", title: "Set a Resolution", desc: "Define what you want to achieve and pick a timeframe.", tint: "var(--yellow)" },
-  { num: "02", title: "Choose Your Mode", desc: "Go honor-system or raise the stakes with real money.", tint: "var(--teal)" },
-  { num: "03", title: "Focus & Check In", desc: "Use the Focus Timer daily and check in on your commitments.", tint: "var(--pink)" },
-  { num: "04", title: "Win or Learn", desc: "Complete your challenge to reclaim your stake — or let it go to a good cause.", tint: "var(--lime)" },
+  {
+    num: "01", title: "Set a Resolution", tint: "var(--gold)",
+    desc: "Define what you want to achieve, set a timeframe, and optionally stake real money for extra accountability.",
+    mockup: [
+      { label: "Commitment", value: "Exercise 30min daily", color: "#1A3E5C" },
+      { label: "Duration", value: "30 days", color: "#8DB15E" },
+      { label: "Mode", value: "Stake $50", color: "#F6B132" },
+    ],
+    mockupDetail: "Choose honor-system or raise the stakes with real money. If you fail, the funds go to charity.",
+  },
+  {
+    num: "02", title: "Track with Focus Timer", tint: "var(--green)",
+    desc: "Use the built-in Pomodoro timer to stay focused. Every session is logged and counted toward your goals.",
+    mockup: [
+      { label: "Focus", value: "25:00", color: "#E8729A" },
+      { label: "Sessions", value: "4/6", color: "#8DB15E" },
+      { label: "Today", value: "100min", color: "#1A3E5C" },
+    ],
+    mockupDetail: "Set tasks, define session targets, and track your progress with a clean, distraction-free timer.",
+  },
+  {
+    num: "03", title: "Check In & Self-Assess", tint: "var(--pink)",
+    desc: "Check in daily, weekly, or at the end of your commitment. Self-assess before validators can review.",
+    mockup: [
+      { label: "Streak", value: "7 days", color: "#F6B132" },
+      { label: "Progress", value: "68%", color: "#8DB15E" },
+      { label: "Status", value: "On Track", color: "#1A3E5C" },
+    ],
+    mockupDetail: "Your validators can only approve or reject after you self-assess — keeping the process fair and honest.",
+  },
+  {
+    num: "04", title: "Win or Learn", tint: "var(--navy)",
+    desc: "Complete your challenge to reclaim your stake. Miss it? The money goes to a good cause. Either way, you grow.",
+    mockup: [
+      { label: "Result", value: "Completed!", color: "#8DB15E" },
+      { label: "Returned", value: "$50.00", color: "#F6B132" },
+      { label: "Sessions", value: "42 total", color: "#1A3E5C" },
+    ],
+    mockupDetail: "Get a full summary of your journey. Celebrate wins, learn from misses, and start your next challenge.",
+  },
 ];
 
 const STATS = [
   { value: "92%", label: "Completion rate with stakes", tint: "var(--teal)" },
   { value: "3.5x", label: "More consistent with AI coaching", tint: "var(--pink)" },
   { value: "47%", label: "Higher follow-through with validators", tint: "var(--blue)" },
-  { value: "2026", label: "Built for your resolutions", tint: "var(--yellow)" },
 ];
 
+
+function HowItWorks() {
+  const [activeStep, setActiveStep] = useState(0);
+  const step = STEPS[activeStep];
+
+  return (
+    <section id="how-it-works" style={{ padding: "32px 0" }}>
+      <div style={{ textAlign: "center", marginBottom: 28 }}>
+        <div className="h2">How it works</div>
+        <p className="p" style={{ marginTop: 8, maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
+          Four simple steps to transform your resolutions into results.
+        </p>
+      </div>
+
+      {/* Tab buttons */}
+      <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 24, flexWrap: "wrap" }}>
+        {STEPS.map((s, i) => (
+          <button
+            key={s.num}
+            onClick={() => setActiveStep(i)}
+            style={{
+              padding: "8px 18px",
+              borderRadius: 12,
+              border: activeStep === i ? "1.5px solid rgba(0,0,0,0.1)" : "1.5px solid rgba(0,0,0,0.06)",
+              background: activeStep === i ? s.tint : "rgba(255,255,255,0.6)",
+              color: activeStep === i ? "#fff" : "var(--ink)",
+              fontWeight: activeStep === i ? 700 : 500,
+              fontSize: 13,
+              cursor: "pointer",
+              transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+              boxShadow: activeStep === i ? "0 2px 10px rgba(0,0,0,0.1)" : "none",
+            }}
+          >
+            {s.num}. {s.title}
+          </button>
+        ))}
+      </div>
+
+      {/* Content: description + laptop mockup */}
+      <div className="neo-surface" style={{ padding: "28px 24px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 3, background: step.tint }} />
+        <div className="grid cols-2" style={{ gap: 32, alignItems: "center" }}>
+          {/* Left: description */}
+          <div>
+            <div style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              width: 44, height: 44, borderRadius: 999,
+              background: step.tint, fontWeight: 800, fontSize: 16, color: "#fff",
+              border: "1.5px solid rgba(0,0,0,0.06)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}>
+              {step.num}
+            </div>
+            <div className="h2" style={{ marginTop: 16, fontSize: 22 }}>{step.title}</div>
+            <p className="p" style={{ marginTop: 10, lineHeight: 1.7, fontSize: 15 }}>{step.desc}</p>
+            <p className="p" style={{ marginTop: 12, lineHeight: 1.6, fontSize: 13, fontStyle: "italic", color: "var(--ink-soft)" }}>
+              {step.mockupDetail}
+            </p>
+          </div>
+
+          {/* Right: laptop mockup */}
+          <div style={{ position: "relative" }}>
+            <div style={{
+              background: "linear-gradient(135deg, rgba(26,62,92,0.05), rgba(141,177,94,0.05))",
+              borderRadius: 16, padding: "16px 16px 0", border: "1.5px solid rgba(0,0,0,0.06)",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.06)",
+              overflow: "hidden",
+            }}>
+              {/* Laptop chrome */}
+              <div style={{
+                background: "#1A3E5C", borderRadius: "10px 10px 0 0",
+                padding: "6px 10px 0", position: "relative",
+              }}>
+                <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: 999, background: "#ff5f57" }} />
+                  <div style={{ width: 7, height: 7, borderRadius: 999, background: "#febc2e" }} />
+                  <div style={{ width: 7, height: 7, borderRadius: 999, background: "#28c840" }} />
+                </div>
+                {/* Screen content */}
+                <div style={{ background: "#f8fafc", borderRadius: "6px 6px 0 0", padding: 14, minHeight: 180 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
+                    <Image src="/logo.webp" alt="" width={20} height={20} style={{ borderRadius: 5 }} />
+                    <span style={{ fontWeight: 700, fontSize: 11, color: "#1A3E5C" }}>OKMindful</span>
+                    <span style={{ fontSize: 10, color: "#9CA3AF", marginLeft: "auto" }}>Step {step.num}</span>
+                  </div>
+                  {/* Mockup stats */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
+                    {step.mockup.map((m) => (
+                      <div key={m.label} style={{
+                        padding: "8px 6px", borderRadius: 8,
+                        background: `${m.color}18`, textAlign: "center",
+                        border: `1px solid ${m.color}22`,
+                      }}>
+                        <div style={{ fontWeight: 800, fontSize: 14, color: m.color }}>{m.value}</div>
+                        <div style={{ fontSize: 9, color: "#6B7280", marginTop: 2 }}>{m.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Progress bar */}
+                  <div style={{ background: "#e5e7eb", borderRadius: 999, height: 6, overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%", borderRadius: 999,
+                      background: `linear-gradient(90deg, #8DB15E, #1A3E5C)`,
+                      width: `${25 + activeStep * 25}%`,
+                      transition: "width 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+                    }} />
+                  </div>
+                  <div style={{ fontSize: 9, color: "#9CA3AF", marginTop: 4, textAlign: "right" }}>
+                    {25 + activeStep * 25}% complete
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -101,14 +258,7 @@ export default function HomePage() {
         <section style={{ padding: "56px 0 24px" }}>
           <div className="grid cols-2" style={{ alignItems: "center", gap: 40 }}>
             <div className="animate-slide-up">
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "5px 12px", borderRadius: 999,
-                background: "rgba(141,177,94,0.12)", color: "var(--ink)",
-                fontSize: 12, fontWeight: 600,
-              }}>
-                Resolution Engine &middot; 2026
-              </div>
+  
               <h1 className="h1" style={{ marginTop: 20 }}>
                 Build real
                 <br />
@@ -190,7 +340,7 @@ export default function HomePage() {
 
         {/* ─── Stats ─── */}
         <section style={{ padding: "24px 0 40px" }}>
-          <div className="grid cols-4" style={{ gap: 14 }}>
+          <div className="grid cols-3" style={{ gap: 14 }}>
             {STATS.map((s) => (
               <div key={s.label} className="neo-surface" style={{ padding: "20px 16px", textAlign: "center", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 3, background: s.tint }} />
@@ -231,35 +381,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ─── How It Works ─── */}
-        <section id="how-it-works" style={{ padding: "32px 0" }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div className="h2">How it works</div>
-            <p className="p" style={{ marginTop: 8, maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
-              Four simple steps to transform your resolutions into results.
-            </p>
-          </div>
-          <div className="grid cols-4" style={{ gap: 14 }}>
-            {STEPS.map((s, i) => (
-              <div key={s.num} className="neo-surface" style={{ padding: 20, textAlign: "center", position: "relative" }}>
-                {i < STEPS.length - 1 && (
-                  <div style={{ position: "absolute", top: "50%", right: -7, width: 14, height: 2, background: "rgba(0,0,0,0.1)" }} />
-                )}
-                <div style={{
-                  width: 40, height: 40, borderRadius: 999,
-                  background: s.tint, display: "inline-grid", placeItems: "center",
-                  fontWeight: 700, fontSize: 14,
-                  border: "1.5px solid rgba(0,0,0,0.06)",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                }}>
-                  {s.num}
-                </div>
-                <div className="h3" style={{ marginTop: 14 }}>{s.title}</div>
-                <div className="p" style={{ marginTop: 6, lineHeight: 1.6 }}>{s.desc}</div>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* ─── How It Works (Tabs + Laptop Mockup) ─── */}
+        <HowItWorks />
 
         {/* ─── AI Advisor Showcase ─── */}
         <section style={{ padding: "32px 0" }}>

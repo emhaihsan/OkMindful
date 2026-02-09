@@ -28,6 +28,7 @@ export function Card({
           fontWeight: 700,
           fontSize: 12,
           letterSpacing: "-0.01em",
+          color: "#fff",
           border: "1.5px solid rgba(0,0,0,0.08)",
           boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
         }}

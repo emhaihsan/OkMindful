@@ -65,7 +65,7 @@ export function AppShell({
                       fontWeight: isActive ? 700 : 500,
                       borderRadius: 10,
                       background: isActive ? n.tint : "transparent",
-                      color: "var(--ink)",
+                      color: isActive ? "#fff" : "var(--ink)",
                       border: isActive ? "1.5px solid rgba(0,0,0,0.08)" : "1.5px solid transparent",
                       boxShadow: isActive ? "0 2px 8px rgba(0,0,0,0.06)" : "none",
                       transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",

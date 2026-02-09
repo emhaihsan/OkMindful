@@ -116,6 +116,7 @@ a {
   font-weight: 700;
   font-size: 14px;
   letter-spacing: -0.01em;
+  color: #fff;
   transition: all 0.2s var(--ease-out);
   user-select: none;
 }
@@ -143,6 +144,7 @@ a {
   background: var(--paper);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  color: var(--ink);
 }
 
 /* ─── Badges ─── */

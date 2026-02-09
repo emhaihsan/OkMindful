@@ -157,8 +157,8 @@ export default function CommitmentsPage() {
                 {/* Mode */}
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                   <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>Mode:</span>
-                  <button className="neo-btn" onClick={() => setMode("commit")} style={{ padding: "7px 14px", fontSize: 13, background: mode === "commit" ? "var(--yellow)" : "transparent", border: mode === "commit" ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>Commit Only</button>
-                  <button className="neo-btn" onClick={() => setMode("stake")} style={{ padding: "7px 14px", fontSize: 13, background: mode === "stake" ? "var(--teal)" : "transparent", border: mode === "stake" ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>Commit + Stake</button>
+                  <button className="neo-btn" onClick={() => setMode("commit")} style={{ padding: "7px 14px", fontSize: 13, background: mode === "commit" ? "var(--yellow)" : "transparent", color: mode === "commit" ? "#fff" : "var(--ink)", border: mode === "commit" ? undefined : "1.5px solid var(--ink)" }}>Commit Only</button>
+                  <button className="neo-btn" onClick={() => setMode("stake")} style={{ padding: "7px 14px", fontSize: 13, background: mode === "stake" ? "var(--teal)" : "transparent", color: mode === "stake" ? "#fff" : "var(--ink)", border: mode === "stake" ? undefined : "1.5px solid var(--ink)" }}>Commit + Stake</button>
                 </div>
 
                 {/* Stake Amount */}
@@ -167,7 +167,7 @@ export default function CommitmentsPage() {
                     <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                       <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>Stake ($):</span>
                       {[10, 25, 50, 100, 250].map((amt) => (
-                        <button key={amt} className="neo-btn" onClick={() => { setStakeAmount(amt); setCustomStake(""); }} style={{ padding: "6px 12px", fontSize: 13, background: !customStake && stakeAmount === amt ? "var(--pink)" : "transparent", border: !customStake && stakeAmount === amt ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>
+                        <button key={amt} className="neo-btn" onClick={() => { setStakeAmount(amt); setCustomStake(""); }} style={{ padding: "6px 12px", fontSize: 13, background: !customStake && stakeAmount === amt ? "var(--pink)" : "#fff", color: !customStake && stakeAmount === amt ? "#fff" : "var(--ink)", border: "1.5px solid rgba(0,0,0,0.08)" }}>
                           ${amt}
                         </button>
                       ))}
@@ -200,14 +200,14 @@ export default function CommitmentsPage() {
                 <div className="grid" style={{ gap: 8 }}>
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>Duration:</span>
-                    <button className="neo-btn" onClick={() => setDurationType("preset")} style={{ padding: "5px 10px", fontSize: 12, background: durationType === "preset" ? "var(--blue)" : "transparent", border: durationType === "preset" ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>Preset</button>
-                    <button className="neo-btn" onClick={() => setDurationType("custom")} style={{ padding: "5px 10px", fontSize: 12, background: durationType === "custom" ? "var(--blue)" : "transparent", border: durationType === "custom" ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>Custom Days</button>
-                    <button className="neo-btn" onClick={() => setDurationType("date")} style={{ padding: "5px 10px", fontSize: 12, background: durationType === "date" ? "var(--blue)" : "transparent", border: durationType === "date" ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>Pick Date</button>
+                    <button className="neo-btn" onClick={() => setDurationType("preset")} style={{ padding: "5px 10px", fontSize: 12, background: durationType === "preset" ? "var(--blue)" : "#fff", color: durationType === "preset" ? "#fff" : "var(--ink)", border: "1.5px solid rgba(0,0,0,0.08)" }}>Preset</button>
+                    <button className="neo-btn" onClick={() => setDurationType("custom")} style={{ padding: "5px 10px", fontSize: 12, background: durationType === "custom" ? "var(--blue)" : "#fff", color: durationType === "custom" ? "#fff" : "var(--ink)", border: "1.5px solid rgba(0,0,0,0.08)" }}>Custom Days</button>
+                    <button className="neo-btn" onClick={() => setDurationType("date")} style={{ padding: "5px 10px", fontSize: 12, background: durationType === "date" ? "var(--blue)" : "#fff", color: durationType === "date" ? "#fff" : "var(--ink)", border: "1.5px solid rgba(0,0,0,0.08)" }}>Pick Date</button>
                   </div>
                   {durationType === "preset" && (
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {[7, 14, 30, 60, 90].map((d) => (
-                        <button key={d} className="neo-btn" onClick={() => setDuration(d)} style={{ padding: "6px 12px", fontSize: 13, background: duration === d ? "var(--blue)" : "transparent", border: duration === d ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>{d} days</button>
+                        <button key={d} className="neo-btn" onClick={() => setDuration(d)} style={{ padding: "6px 12px", fontSize: 13, background: duration === d ? "var(--blue)" : "#fff", color: duration === d ? "#fff" : "var(--ink)", border: "1.5px solid rgba(0,0,0,0.08)" }}>{d} days</button>
                       ))}
                     </div>
                   )}
@@ -227,7 +227,7 @@ export default function CommitmentsPage() {
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                     <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>Check-in style:</span>
                     {(["daily", "weekly", "end"] as const).map((f) => (
-                      <button key={f} className="neo-btn" onClick={() => setCheckinFreq(f)} style={{ padding: "6px 12px", fontSize: 13, background: checkinFreq === f ? "var(--lime)" : "transparent", border: checkinFreq === f ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>
+                      <button key={f} className="neo-btn" onClick={() => setCheckinFreq(f)} style={{ padding: "6px 12px", fontSize: 13, background: checkinFreq === f ? "var(--lime)" : "var(--bg)", color: checkinFreq === f ? "#fff" : "var(--ink)", border: checkinFreq === f ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>
                         {f === "daily" ? "Daily" : f === "weekly" ? "Weekly" : "End of Period"}
                       </button>
                     ))}

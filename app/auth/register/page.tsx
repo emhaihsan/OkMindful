@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../lib/auth-context";
@@ -59,18 +60,7 @@ export default function RegisterPage() {
     <div style={{ display: "grid", placeItems: "center", minHeight: "100vh", padding: 20 }}>
       <div style={{ width: "100%", maxWidth: 400 }} className="animate-fade-in">
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <div
-            style={{
-              width: 48, height: 48, borderRadius: 14,
-              background: "var(--yellow)",
-              display: "inline-grid", placeItems: "center",
-              fontWeight: 800, fontSize: 16,
-              border: "1.5px solid rgba(0,0,0,0.08)",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-            }}
-          >
-            OK
-          </div>
+          <Image src="/logo.webp" alt="OKMindful" width={48} height={48} style={{ borderRadius: 14 }} />
           <h1 className="h2" style={{ marginTop: 14 }}>Create your account</h1>
           <p className="p" style={{ marginTop: 6 }}>Join OKMindful and start building real accountability</p>
         </div>
@@ -116,7 +106,7 @@ export default function RegisterPage() {
               </div>
 
               {error && (
-                <div style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(244,114,182,0.12)", border: "1.5px solid rgba(244,114,182,0.2)" }}>
+                <div style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(232,114,154,0.12)", border: "1.5px solid rgba(232,114,154,0.2)" }}>
                   <div className="p" style={{ fontWeight: 600, color: "var(--ink)", fontSize: 13 }}>{error}</div>
                 </div>
               )}
