@@ -49,3 +49,5 @@ OPIK_SETUP.md
 supabase/
 supabase/.temp
 supabase/.backup
+
+OPIK_INTEGRATION.md

@@ -1,6 +1,9 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { createTrace, endTrace, createSpan, addFeedbackScore, uuidv7 } from "../../lib/opik";
+import { GoogleGenAI } from "@google/genai";
+import { trackGemini } from "opik-gemini";
+import { getOpikClient } from "../../lib/opik";
+import type { Trace } from "../../lib/opik";
 
 const DEFAULT_SYSTEM_PROMPT = `You are a Productivity Advisor AI for OKMindful, a commitment & accountability app for 2026 New Year's resolutions.
 
@@ -13,12 +16,6 @@ Your role:
 
 Be concise, practical, and actionable. Use bullet points when listing steps. Keep responses under 200 words unless the user asks for detail. Always respond in the same language the user writes in.`;
 
-/**
- * Load the optimized prompt from the optimizer output if available.
- * The optimizer (Python/Opik Agent Optimizer SDK) writes the best prompt
- * to optimizer/optimized_prompt.txt after running optimization trials.
- * Falls back to the default prompt if the file doesn't exist.
- */
 function loadSystemPrompt(): { prompt: string; version: string } {
   const optimizedPaths = [
     join(process.cwd(), "..", "optimizer", "optimized_prompt_hrpo.txt"),
@@ -62,11 +59,7 @@ export async function POST(req: Request) {
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) {
     return Response.json(
-      {
-        content:
-          "The AI advisor is temporarily unavailable. Please try again later.",
-        traceId: null,
-      },
+      { content: "The AI advisor is temporarily unavailable. Please try again later.", traceId: null },
       { status: 200 }
     );
   }
@@ -84,89 +77,70 @@ export async function POST(req: Request) {
     systemPrompt += parts.join("\n");
   }
 
-  const traceId = uuidv7();
-  const spanId = uuidv7();
-  const startTime = new Date().toISOString();
+  // ── Set up Opik-tracked Gemini client ──
+  const opik = getOpikClient();
+  let parentTrace: Trace | undefined;
 
-  await createTrace({
-    id: traceId,
-    name: "productivity-advisor-chat",
-    input: { messages, message_count: messages.length, context },
-    startTime,
-    metadata: { model: GEMINI_MODEL, system_prompt_version: PROMPT_VERSION },
-  });
+  if (opik) {
+    parentTrace = opik.trace({
+      name: "productivity-advisor-chat",
+      input: { messages, message_count: messages.length, context },
+      metadata: {
+        model: GEMINI_MODEL,
+        system_prompt_version: PROMPT_VERSION,
+        tags: ["chat", "advisor"],
+      },
+    });
+  }
 
+  const genAI = new GoogleGenAI({ apiKey: geminiKey });
+  const trackedGenAI = opik
+    ? trackGemini(genAI, {
+        client: opik,
+        parent: parentTrace,
+        generationName: "gemini-advisor-completion",
+        traceMetadata: {
+          tags: ["chat", "advisor", "gemini"],
+          model: GEMINI_MODEL,
+          prompt_version: PROMPT_VERSION,
+        },
+      })
+    : genAI;
+
+  // Build contents for Gemini
   const geminiContents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
+    role: m.role === "assistant" ? ("model" as const) : ("user" as const),
     parts: [{ text: m.content }],
   }));
 
-  try {
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${geminiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: geminiContents,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 512,
-          },
-        }),
-      }
-    );
+  const traceId = parentTrace?.data?.id || "no-trace";
 
-    if (!geminiRes.ok) {
-      const err = await geminiRes.text();
-      await endTrace({ id: traceId, output: { error: err } });
-      console.error("[gemini] API error:", err);
-      return Response.json({ content: "The AI advisor encountered an issue. Please try again.", traceId }, { status: 200 });
-    }
+  try {
+    // Use the SDK's streaming method — opik-gemini auto-traces this
+    const response = await trackedGenAI.models.generateContentStream({
+      model: GEMINI_MODEL,
+      contents: geminiContents,
+      config: {
+        systemInstruction: systemPrompt,
+        temperature: 0.7,
+        maxOutputTokens: 512,
+      },
+    });
 
     const encoder = new TextEncoder();
     let fullContent = "";
-    let usage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined;
 
     const stream = new ReadableStream({
       async start(controller) {
         // Send traceId as first SSE event
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ traceId })}\n\n`));
 
-        const reader = geminiRes.body!.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-              if (!line.startsWith("data: ")) continue;
-              const jsonStr = line.slice(6).trim();
-              if (!jsonStr || jsonStr === "[DONE]") continue;
-              try {
-                const chunk = JSON.parse(jsonStr);
-                const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                if (text) {
-                  fullContent += text;
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
-                }
-                // Capture usage from last chunk
-                if (chunk.usageMetadata) {
-                  usage = {
-                    prompt_tokens: chunk.usageMetadata.promptTokenCount,
-                    completion_tokens: chunk.usageMetadata.candidatesTokenCount,
-                    total_tokens: chunk.usageMetadata.totalTokenCount,
-                  };
-                }
-              } catch { /* skip malformed chunks */ }
+          for await (const chunk of response) {
+            const text = chunk.text || "";
+            if (text) {
+              fullContent += text;
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
             }
           }
         } catch (e) {
@@ -177,51 +151,37 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
         controller.close();
 
-        // ── Post-stream: Opik tracing (awaited to ensure delivery) ──
-        const endTime = new Date().toISOString();
+        // ── Post-stream: update trace + heuristic scores + LLM-as-judge ──
         const content = fullContent || "No response from Gemini.";
 
-        try {
-          await createSpan({
-            id: spanId,
-            traceId,
-            name: "gemini-flash-completion",
-            type: "llm",
-            input: { messages: geminiContents, system_prompt: systemPrompt },
-            output: { content },
-            startTime,
-            endTime,
-            metadata: { model: GEMINI_MODEL, temperature: 0.7 },
-            usage,
-          });
-        } catch (e) { console.error("[opik] span error:", e); }
+        if (parentTrace) {
+          parentTrace.update({ output: { content } });
+          parentTrace.end();
 
-        try {
-          await endTrace({ id: traceId, output: { content }, usage });
-        } catch (e) { console.error("[opik] endTrace error:", e); }
+          // Heuristic feedback scores
+          const wordCount = content.split(/\s+/).length;
+          const hasActionItems = /[-•]\s/.test(content) || /\d+[.)]\s/.test(content);
+          const relevanceScore =
+            content.toLowerCase().includes("focus") ||
+            content.toLowerCase().includes("goal") ||
+            content.toLowerCase().includes("commit")
+              ? 1.0 : 0.7;
 
-        const wordCount = content.split(/\s+/).length;
-        const hasActionItems = /[-•]\s/.test(content) || /\d+[.)]\s/.test(content);
-        const relevanceScore =
-          content.toLowerCase().includes("focus") ||
-          content.toLowerCase().includes("goal") ||
-          content.toLowerCase().includes("commit")
-            ? 1.0
-            : 0.7;
+          parentTrace.score({ name: "response_length", value: Math.min(wordCount / 200, 1), reason: `${wordCount} words` });
+          parentTrace.score({ name: "actionability", value: hasActionItems ? 1.0 : 0.5, reason: hasActionItems ? "Contains action items" : "No action items" });
+          parentTrace.score({ name: "topic_relevance", value: relevanceScore, reason: "Keyword match for productivity topics" });
 
-        try {
-          await Promise.all([
-            addFeedbackScore({ traceId, name: "response_length", value: Math.min(wordCount / 200, 1), reason: `${wordCount} words` }),
-            addFeedbackScore({ traceId, name: "actionability", value: hasActionItems ? 1.0 : 0.5, reason: hasActionItems ? "Contains action items" : "No action items found" }),
-            addFeedbackScore({ traceId, name: "topic_relevance", value: relevanceScore, reason: "Keyword match for productivity topics" }),
-          ]);
-        } catch (e) { console.error("[opik] feedback error:", e); }
+          // LLM-as-Judge (uses a separate tracked call)
+          const userQuery = messages[messages.length - 1]?.content || "";
+          try {
+            await runLlmJudge(trackedGenAI, parentTrace, userQuery, content);
+          } catch (e) { console.error("[llm-judge] error:", e); }
+        }
 
-        // LLM-as-Judge (awaited so it completes before request ends)
-        const userQuery = messages[messages.length - 1]?.content || "";
-        try {
-          await runLlmJudge(geminiKey, traceId, userQuery, content);
-        } catch (e) { console.error("[llm-judge] error:", e); }
+        // Flush all pending Opik data
+        if ("flush" in trackedGenAI) {
+          try { await (trackedGenAI as { flush: () => Promise<void> }).flush(); } catch { /* ok */ }
+        }
       },
     });
 
@@ -235,21 +195,20 @@ export async function POST(req: Request) {
   } catch (e) {
     const errMsg = e instanceof Error ? e.message : "Unknown error";
     console.error("[chat] error:", errMsg);
-    await endTrace({ id: traceId, output: { error: errMsg } });
+    if (parentTrace) {
+      parentTrace.update({ output: { error: errMsg } });
+      parentTrace.end();
+    }
     return Response.json({ content: "Something went wrong. Please try again.", traceId }, { status: 200 });
   }
 }
 
 /**
- * Extract a JSON object from a string that may contain markdown fences,
- * thinking tokens, or other noise around the JSON.
+ * Extract a JSON object from a string that may contain markdown fences or noise.
  */
 function extractJson(raw: string): string | null {
-  // Strip markdown fences
-  let s = raw.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
-  // Try direct parse first
+  const s = raw.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
   try { JSON.parse(s); return s; } catch { /* continue */ }
-  // Regex: find first { ... } block
   const match = s.match(/\{[\s\S]*\}/);
   if (match) {
     try { JSON.parse(match[0]); return match[0]; } catch { /* continue */ }
@@ -257,12 +216,18 @@ function extractJson(raw: string): string | null {
   return null;
 }
 
-async function runLlmJudge(geminiKey: string, traceId: string, userQuery: string, aiResponse: string) {
-  const evalSpanId = uuidv7();
-  const evalStart = new Date().toISOString();
-
-  // Use gemini-2.0-flash-lite: no thinking tokens, fast, cheap — avoids the
-  // truncation bug where thinking tokens eat the maxOutputTokens budget.
+/**
+ * LLM-as-Judge: evaluates AI response quality using a separate Gemini call.
+ * Uses gemini-2.0-flash-lite (no thinking tokens) to avoid truncation.
+ * Scores are logged as Opik feedback on the parent trace.
+ */
+async function runLlmJudge(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  genAI: any,
+  parentTrace: Trace,
+  userQuery: string,
+  aiResponse: string,
+) {
   const JUDGE_MODEL = "gemini-2.0-flash-lite";
 
   const judgePrompt = `You are an AI quality evaluator. Score the following AI response on three dimensions.
@@ -282,31 +247,28 @@ AI RESPONSE: ${aiResponse.slice(0, 1000)}
 
 Respond with ONLY the JSON object, nothing else.`;
 
+  // Create a child span for the judge evaluation
+  const judgeSpan = parentTrace.span({
+    name: "llm-as-judge-eval",
+    type: "llm",
+    input: { user_query: userQuery.slice(0, 500), ai_response: aiResponse.slice(0, 1000) },
+    metadata: { eval_model: JUDGE_MODEL, eval_type: "llm-as-judge" },
+  });
+
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${JUDGE_MODEL}:generateContent?key=${geminiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: judgePrompt }] }],
-          generationConfig: { temperature: 0.0, maxOutputTokens: 1024 },
-        }),
-      }
-    );
+    const response = await genAI.models.generateContent({
+      model: JUDGE_MODEL,
+      contents: judgePrompt,
+      config: { temperature: 0.0, maxOutputTokens: 1024 },
+    });
 
-    if (!res.ok) {
-      console.error("[llm-judge] API error:", res.status, await res.text().catch(() => ""));
-      return;
-    }
-
-    const data = await res.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const raw = response?.text || "";
     console.log("[llm-judge] raw response:", raw.slice(0, 300));
 
     const jsonStr = extractJson(raw);
     if (!jsonStr) {
       console.warn("[llm-judge] could not extract JSON from:", raw.slice(0, 200));
+      judgeSpan.end();
       return;
     }
 
@@ -314,54 +276,38 @@ Respond with ONLY the JSON object, nothing else.`;
       helpfulness?: number; specificity?: number; safety?: number; reason?: string;
     };
 
-    const evalEnd = new Date().toISOString();
+    judgeSpan.update({ output: scores });
+    judgeSpan.end();
 
-    // Log eval span
-    await createSpan({
-      id: evalSpanId,
-      traceId,
-      name: "llm-as-judge-eval",
-      type: "llm",
-      input: { user_query: userQuery.slice(0, 500), ai_response: aiResponse.slice(0, 1000) },
-      output: scores,
-      startTime: evalStart,
-      endTime: evalEnd,
-      metadata: { eval_model: JUDGE_MODEL, eval_type: "llm-as-judge" },
-    });
-
-    // Log feedback scores in parallel
-    const feedbackPromises: Promise<unknown>[] = [];
+    // Log judge feedback scores on the parent trace
     if (scores.helpfulness !== undefined) {
-      feedbackPromises.push(addFeedbackScore({
-        traceId,
+      parentTrace.score({
         name: "judge_helpfulness",
         value: Math.max(0, Math.min(1, scores.helpfulness)),
         reason: scores.reason || "LLM judge evaluation",
         categoryName: "llm_judge",
-      }));
+      });
     }
     if (scores.specificity !== undefined) {
-      feedbackPromises.push(addFeedbackScore({
-        traceId,
+      parentTrace.score({
         name: "judge_specificity",
         value: Math.max(0, Math.min(1, scores.specificity)),
         reason: scores.reason || "LLM judge evaluation",
         categoryName: "llm_judge",
-      }));
+      });
     }
     if (scores.safety !== undefined) {
-      feedbackPromises.push(addFeedbackScore({
-        traceId,
+      parentTrace.score({
         name: "judge_safety",
         value: Math.max(0, Math.min(1, scores.safety)),
         reason: scores.reason || "LLM judge evaluation",
         categoryName: "llm_judge",
-      }));
+      });
     }
-    await Promise.all(feedbackPromises);
 
     console.log("[llm-judge] scores logged to Opik:", scores);
   } catch (e) {
     console.error("[llm-judge] error:", e);
+    judgeSpan.end();
   }
 }
