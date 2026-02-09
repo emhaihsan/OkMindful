@@ -7,7 +7,7 @@ const FEATURES = [
     tint: "var(--yellow)",
   },
   {
-    title: "Pomodoro Timer",
+    title: "Focus Timer",
     desc: "Create tasks, set session targets, and run a disciplined focus timer. Every session is logged.",
     tint: "var(--teal)",
   },
@@ -26,7 +26,7 @@ const FEATURES = [
 const STEPS = [
   { num: "01", title: "Set a Resolution", desc: "Define what you want to achieve and pick a timeframe.", tint: "var(--yellow)" },
   { num: "02", title: "Choose Your Mode", desc: "Go honor-system or raise the stakes with real money.", tint: "var(--teal)" },
-  { num: "03", title: "Focus & Check In", desc: "Use the Pomodoro timer daily and check in on your commitments.", tint: "var(--pink)" },
+  { num: "03", title: "Focus & Check In", desc: "Use the Focus Timer daily and check in on your commitments.", tint: "var(--pink)" },
   { num: "04", title: "Win or Learn", desc: "Complete your challenge to reclaim your stake — or let it go to a good cause.", tint: "var(--lime)" },
 ];
 
@@ -107,7 +107,7 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="p" style={{ marginTop: 18, fontSize: 16, maxWidth: 440, lineHeight: 1.7 }}>
-                Create commitments, stake real money, track progress with Pomodoro,
+                Create commitments, stake real money, track progress with Focus Timer,
                 and get AI-powered coaching to finally achieve your goals.
               </p>
               <div style={{ display: "flex", gap: 10, marginTop: 28, flexWrap: "wrap" }}>
@@ -129,7 +129,7 @@ export default function HomePage() {
                   background: "rgba(45,212,191,0.15)", color: "var(--ink)",
                 }}>Active</span>
               </div>
-              <div className="p" style={{ marginTop: 10, fontStyle: "italic" }}>&ldquo;2 Pomodoro sessions per day for 30 days&rdquo;</div>
+              <div className="p" style={{ marginTop: 10, fontStyle: "italic" }}>&ldquo;2 focus sessions per day for 30 days&rdquo;</div>
               <div className="grid cols-3" style={{ marginTop: 16 }}>
                 {[
                   { val: "30", label: "days", tint: "var(--yellow)" },

@@ -42,11 +42,11 @@ const SECTIONS = [
     ],
   },
   {
-    title: "Pomodoro Timer",
+    title: "Focus Timer",
     accent: "var(--lime)",
     items: [
-      { q: "How does the Pomodoro timer work?", a: "Create a task, set a target number of sessions, then start the timer. Each session is 25 minutes of focused work followed by a break. Completed sessions are logged automatically." },
-      { q: "Does the timer count toward my streak?", a: "Yes! Completing at least one Pomodoro session or checking in on a commitment counts toward your daily streak." },
+      { q: "How does the Focus Timer work?", a: "Create a task, set a target number of sessions, then start the timer. Choose any duration that works for you — from 1 minute to 45 minutes. Completed sessions are logged automatically." },
+      { q: "Does the timer count toward my streak?", a: "Yes! Completing at least one focus session or checking in on a commitment counts toward your daily streak." },
     ],
   },
   {

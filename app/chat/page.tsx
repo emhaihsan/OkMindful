@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { AppShell } from "../ui/AppShell";
 import { useStore } from "../lib/store";
+import { streamChat } from "../lib/stream-chat";
+import { Markdown } from "../ui/Markdown";
 import type { ChatMessage } from "../lib/types";
 
 /** Group flat messages into "conversations" by time gaps (>30 min = new conversation) */
@@ -68,33 +70,44 @@ export default function ChatPage() {
   const activeConvo = conversations.find((c) => c.id === selectedConvoId);
   const displayMessages = activeConvo?.messages ?? messages;
 
-  async function send(text: string) {
+  const [streamingText, setStreamingText] = useState("");
+
+  const send = useCallback(async (text: string) => {
     if (!text.trim() || loading) return;
     const userText = text.trim();
     setInput("");
     await store.addMessage("user", userText);
     setLoading(true);
+    setStreamingText("");
 
     const apiMessages = [...displayMessages, { role: "user" as const, content: userText }].map((m) => ({
       role: m.role,
       content: m.content,
     }));
 
+    const totalStake = activeCommitments.filter((c) => c.mode === "stake").reduce((a, c) => a + c.stakeAmount, 0);
+    const ctx = {
+      activeTasks: tasks.length,
+      activeCommitments: activeCommitments.length,
+      todaySessions: todayS.length,
+      todayFocusMinutes: todayMin,
+      streak: streakVal,
+      totalStake,
+    };
+
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages }),
-      });
-      const data = await res.json();
-      await store.addMessage("assistant", data.content || "No response received.", data.traceId || undefined);
+      const { content, traceId } = await streamChat(apiMessages, (token) => {
+        setStreamingText((prev) => prev + token);
+      }, ctx);
+      await store.addMessage("assistant", content || "No response received.", traceId || undefined);
     } catch {
       await store.addMessage("assistant", "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
+      setStreamingText("");
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
-  }
+  }, [loading, displayMessages, store, activeCommitments, tasks, todayS, todayMin, streakVal]);
 
   function startNew() {
     setSelectedConvoId(null);
@@ -299,9 +312,13 @@ export default function ChatPage() {
                       border: `1.5px solid ${isUser ? "rgba(96,165,250,0.15)" : "rgba(0,0,0,0.05)"}`,
                       maxWidth: "80%",
                     }}>
-                      <div style={{ fontSize: 13, lineHeight: 1.65, color: "var(--ink)", whiteSpace: "pre-wrap" }}>
-                        {m.content}
-                      </div>
+                      {isUser ? (
+                        <div style={{ fontSize: 13, lineHeight: 1.65, color: "var(--ink)", whiteSpace: "pre-wrap" }}>
+                          {m.content}
+                        </div>
+                      ) : (
+                        <Markdown content={m.content} />
+                      )}
                       <div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 6 }}>
                         {new Date(m.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                       </div>
@@ -320,8 +337,13 @@ export default function ChatPage() {
                   <div style={{
                     padding: "12px 16px", borderRadius: 16,
                     background: "rgba(255,255,255,0.6)", border: "1.5px solid rgba(0,0,0,0.05)",
+                    maxWidth: "80%",
                   }}>
-                    <div className="animate-pulse-soft" style={{ fontSize: 13 }}>Thinking...</div>
+                    {streamingText ? (
+                      <Markdown content={streamingText} />
+                    ) : (
+                      <div className="animate-pulse-soft" style={{ fontSize: 13 }}>Thinking...</div>
+                    )}
                   </div>
                 </div>
               )}

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../lib/store";
+import { streamChat } from "../lib/stream-chat";
+import { Markdown } from "./Markdown";
 
 export function ChatBubble() {
   const store = useStore();
@@ -15,6 +17,8 @@ export function ChatBubble() {
     if (open) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
   }, [open, localMsgs]);
 
+  const [streamingText, setStreamingText] = useState("");
+
   async function send(text: string) {
     if (!text.trim() || loading) return;
     const userText = text.trim();
@@ -22,26 +26,26 @@ export function ChatBubble() {
     const newMsgs = [...localMsgs, { role: "user" as const, content: userText }];
     setLocalMsgs(newMsgs);
     setLoading(true);
+    setStreamingText("");
 
     // Also save to store so it appears in /chat history
     await store.addMessage("user", userText);
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMsgs.map((m) => ({ role: m.role, content: m.content })) }),
-      });
-      const data = await res.json();
-      const reply = data.content || "No response received.";
+      const { content, traceId } = await streamChat(
+        newMsgs.map((m) => ({ role: m.role, content: m.content })),
+        (token) => setStreamingText((prev) => prev + token),
+      );
+      const reply = content || "No response received.";
       setLocalMsgs((prev) => [...prev, { role: "assistant", content: reply }]);
-      await store.addMessage("assistant", reply, data.traceId || undefined);
+      await store.addMessage("assistant", reply, traceId || undefined);
     } catch {
       const err = "Something went wrong. Please try again.";
       setLocalMsgs((prev) => [...prev, { role: "assistant", content: err }]);
       await store.addMessage("assistant", err);
     } finally {
       setLoading(false);
+      setStreamingText("");
     }
   }
 
@@ -198,12 +202,13 @@ export function ChatBubble() {
                       border: `1px solid ${isUser ? "rgba(96,165,250,0.15)" : "rgba(0,0,0,0.04)"}`,
                       marginLeft: isUser ? "auto" : 0,
                       maxWidth: "88%",
-                      fontSize: 13,
-                      lineHeight: 1.5,
-                      whiteSpace: "pre-wrap",
                     }}
                   >
-                    {m.content}
+                    {isUser ? (
+                      <div style={{ fontSize: 13, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{m.content}</div>
+                    ) : (
+                      <Markdown content={m.content} />
+                    )}
                   </div>
                 );
               })}
@@ -216,10 +221,13 @@ export function ChatBubble() {
                     background: "rgba(255,255,255,0.7)",
                     border: "1px solid rgba(0,0,0,0.04)",
                     maxWidth: "88%",
-                    fontSize: 13,
                   }}
                 >
-                  <span className="animate-pulse-soft">Thinking...</span>
+                  {streamingText ? (
+                    <Markdown content={streamingText} />
+                  ) : (
+                    <span className="animate-pulse-soft" style={{ fontSize: 13 }}>Thinking...</span>
+                  )}
                 </div>
               )}
               <div ref={bottomRef} />

@@ -70,13 +70,13 @@ export default function PomodoroPage() {
   const focusRef = useRef(focusMinutes);
   useEffect(() => { focusRef.current = focusMinutes; }, [focusMinutes]);
 
-  // Handle timer expired while away
+  // Handle timer expired while away — defer logSession to avoid setState during render
   useEffect(() => {
     if (r?.running && r.endAt && r.endAt <= now) {
       if (r.mode === "focus") {
         const tid = r.selectedTaskId;
         const task = tid ? store.taskById(tid) : undefined;
-        store.logSession(tid || "untitled", task?.title || "Free session", r.focusMinutes, true);
+        setTimeout(() => store.logSession(tid || "untitled", task?.title || "Free session", r.focusMinutes, true), 0);
         setCompletedCount((c) => c + 1);
         setMode("break");
         setSeconds(5 * 60);
@@ -138,7 +138,7 @@ export default function PomodoroPage() {
   return (
     <AppShell active="pomodoro">
       <div className="section-pad">
-        <h1 className="h2">Timeboxing · Pomodoro</h1>
+        <h1 className="h2">Focus Timer</h1>
         <p className="p" style={{ marginTop: 6 }}>Timer persists when you navigate away. Use short durations (1-2m) for quick demos.</p>
 
         <div className="grid cols-2" style={{ marginTop: 18, alignItems: "start" }}>

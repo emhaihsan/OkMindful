@@ -425,7 +425,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const hasCheckin = commitments.some((c) => c.dailyCheckins[ds]);
       if (hasSessions || hasCheckin) {
         count++;
-      } else if (i > 0) {
+      } else {
         break;
       }
       d.setDate(d.getDate() - 1);

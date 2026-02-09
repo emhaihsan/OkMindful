@@ -142,9 +142,9 @@ export default function DashboardPage() {
 
           {/* ─── Right Column ─── */}
           <div className="grid" style={{ gap: 16 }}>
-            <Card title="Active Tasks" accent="var(--teal)" ctaHref="/pomodoro" ctaLabel="Open Pomodoro →">
+            <Card title="Active Tasks" accent="var(--teal)" ctaHref="/pomodoro" ctaLabel="Open Focus Timer →">
               {tasks.length === 0 ? (
-                <div className="p">No tasks yet. <Link href="/pomodoro" style={{ fontWeight: 700 }}>Create in Pomodoro →</Link></div>
+                <div className="p">No tasks yet. <Link href="/pomodoro" style={{ fontWeight: 700 }}>Create in Focus Timer →</Link></div>
               ) : (
                 <div className="grid" style={{ gap: 8 }}>
                   {tasks.slice(0, 5).map((t) => (
@@ -177,7 +177,7 @@ export default function DashboardPage() {
               <div className="h3" style={{ marginBottom: 10 }}>Quick Actions</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <Link className="neo-btn" style={{ padding: "8px 14px", fontSize: 13, background: "var(--yellow)" }} href="/commitments">+ Commitment</Link>
-                <Link className="neo-btn secondary" style={{ padding: "8px 14px", fontSize: 13 }} href="/pomodoro">Start Focus</Link>
+                <Link className="neo-btn secondary" style={{ padding: "8px 14px", fontSize: 13 }} href="/pomodoro">Focus Timer</Link>
               </div>
             </div>
           </div>

@@ -10,7 +10,7 @@ type Active = "home" | "dashboard" | "commitments" | "profile" | "chat" | "pomod
 const NAV: { href: string; label: string; key: Active; tint: string }[] = [
   { href: "/dashboard", label: "Dashboard", key: "dashboard", tint: "var(--teal)" },
   { href: "/commitments", label: "Commitments", key: "commitments", tint: "var(--orange)" },
-  { href: "/pomodoro", label: "Pomodoro", key: "pomodoro", tint: "var(--lime)" },
+  { href: "/pomodoro", label: "Focus Timer", key: "pomodoro", tint: "var(--lime)" },
   { href: "/chat", label: "Advisor", key: "chat", tint: "var(--pink)" },
   { href: "/profile", label: "Profile", key: "profile", tint: "var(--blue)" },
   { href: "/help", label: "Help", key: "help", tint: "var(--orange)" },
