@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     return Response.json(
       {
         content:
-          "GEMINI_API_KEY is not configured. Add it to .env.local:\n\nGEMINI_API_KEY=your_key\n\nGet one free at https://aistudio.google.com/apikey\nThen restart the dev server.",
+          "The AI advisor is temporarily unavailable. Please try again later.",
         traceId: null,
       },
       { status: 200 }
@@ -98,7 +98,8 @@ export async function POST(req: Request) {
     if (!geminiRes.ok) {
       const err = await geminiRes.text();
       await endTrace({ id: traceId, output: { error: err } });
-      return Response.json({ content: `Gemini error: ${err}`, traceId }, { status: 200 });
+      console.error("[gemini] API error:", err);
+      return Response.json({ content: "The AI advisor encountered an issue. Please try again.", traceId }, { status: 200 });
     }
 
     const data = await geminiRes.json();
@@ -163,7 +164,8 @@ export async function POST(req: Request) {
     return Response.json({ content, traceId });
   } catch (e) {
     const errMsg = e instanceof Error ? e.message : "Unknown error";
+    console.error("[chat] error:", errMsg);
     await endTrace({ id: traceId, output: { error: errMsg } });
-    return Response.json({ content: `Error: ${errMsg}`, traceId }, { status: 200 });
+    return Response.json({ content: "Something went wrong. Please try again.", traceId }, { status: 200 });
   }
 }

@@ -25,6 +25,8 @@ export interface Commitment {
   stakeAmount: number;
   durationDays: number;
   startDate: string;
+  deadlineDate: string;
+  fundDestination: string;
   validators: string[];
   dailyCheckins: Record<string, boolean>;
   status: "active" | "completed" | "failed";

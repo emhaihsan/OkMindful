@@ -35,6 +35,8 @@ interface CommitmentRow {
   stake_amount: number;
   duration_days: number;
   start_date: string;
+  deadline_date: string;
+  fund_destination: string;
   status: string;
   daily_checkins: Record<string, boolean>;
   owner_profile?: { username: string } | { username: string }[];
@@ -80,6 +82,8 @@ function mapCommitment(row: CommitmentRow): Commitment {
     stakeAmount: row.stake_amount,
     durationDays: row.duration_days,
     startDate: row.start_date,
+    deadlineDate: row.deadline_date || "",
+    fundDestination: row.fund_destination || "",
     validators,
     dailyCheckins: (row.daily_checkins || {}) as Record<string, boolean>,
     status: row.status as "active" | "completed" | "failed",
@@ -265,14 +269,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addCommitment = useCallback(async (c: Omit<Commitment, "id" | "dailyCheckins" | "status" | "owner" | "validationStatus">) => {
     const id = uid();
 
-    // Look up validator profile IDs by username
+    // Look up validator profile IDs by username or email
     const validatorIds: { username: string; id: string }[] = [];
     if (c.validators.length > 0) {
-      const { data: profiles } = await sb()
+      const lower = c.validators.map((v) => v.toLowerCase());
+      // Try username match first
+      const { data: byUsername } = await sb()
         .from("profiles")
         .select("id, username")
-        .in("username", c.validators.map((v) => v.toLowerCase()));
-      if (profiles) validatorIds.push(...(profiles as { username: string; id: string }[]));
+        .in("username", lower);
+      if (byUsername) validatorIds.push(...(byUsername as { username: string; id: string }[]));
+      // For any not found by username, try email match
+      const foundUsernames = new Set(validatorIds.map((v) => v.username));
+      const remaining = lower.filter((v) => !foundUsernames.has(v));
+      if (remaining.length > 0) {
+        const { data: byEmail } = await sb()
+          .from("profiles")
+          .select("id, username, email")
+          .in("email", remaining);
+        if (byEmail) {
+          for (const p of byEmail as { id: string; username: string; email: string }[]) {
+            if (!foundUsernames.has(p.username)) {
+              validatorIds.push({ id: p.id, username: p.username });
+            }
+          }
+        }
+      }
     }
 
     // Insert commitment
@@ -285,6 +307,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       stake_amount: c.stakeAmount,
       duration_days: c.durationDays,
       start_date: c.startDate,
+      deadline_date: c.deadlineDate || null,
+      fund_destination: c.fundDestination || null,
       daily_checkins: {},
     });
 
@@ -304,6 +328,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...c,
       id,
       owner: currentUser,
+      deadlineDate: c.deadlineDate || "",
+      fundDestination: c.fundDestination || "",
       dailyCheckins: {},
       status: "active" as const,
       validationStatus: vs,

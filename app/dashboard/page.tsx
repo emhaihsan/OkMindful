@@ -103,7 +103,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div className="h3" style={{ fontSize: 16 }}>AI Productivity Agent</div>
-                <div className="p" style={{ fontSize: 12 }}>Gemini Flash &middot; Opik Traced &middot; Context-Aware</div>
+                <div className="p" style={{ fontSize: 12 }}>Context-aware coaching tailored to your goals</div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>

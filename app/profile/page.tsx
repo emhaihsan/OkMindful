@@ -1,18 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AppShell } from "../ui/AppShell";
 import { Card } from "../ui/Card";
 import { Stat } from "../ui/Stat";
 import { useStore } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
+import { createClient } from "../lib/supabase";
 
 const COLORS = ["var(--yellow)", "var(--teal)", "var(--blue)", "var(--pink)", "var(--lime)", "var(--orange)", "var(--yellow)"];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function ProfilePage() {
   const store = useStore();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { tasks, sessions, commitments } = store;
   const displayName = profile?.username || "User";
 
@@ -21,6 +22,70 @@ export default function ProfilePage() {
   const completedCommitments = commitments.filter((c) => c.status === "completed").length;
   const failedStake = commitments.filter((c) => c.status === "failed" && c.mode === "stake").length;
   const successRate = commitments.length > 0 ? Math.round((completedCommitments / commitments.length) * 100) : 0;
+
+  // Balance state
+  const [balance, setBalance] = useState<number | null>(null);
+  const [balanceLoaded, setBalanceLoaded] = useState(false);
+
+  const loadBalance = useCallback(async () => {
+    if (!user || balanceLoaded) return;
+    const sb = createClient();
+    const { data } = await sb.from("profiles").select("balance").eq("id", user.id).single();
+    setBalance((data as { balance: number } | null)?.balance ?? 1000);
+    setBalanceLoaded(true);
+  }, [user, balanceLoaded]);
+
+  // Load balance on mount
+  if (user && !balanceLoaded) loadBalance();
+
+  async function handleTopup() {
+    if (!user) return;
+    const newBal = (balance ?? 0) + 500;
+    setBalance(newBal);
+    const sb = createClient();
+    await sb.from("profiles").update({ balance: newBal }).eq("id", user.id);
+  }
+
+  // Edit username
+  const [editingName, setEditingName] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [nameSaving, setNameSaving] = useState(false);
+
+  async function handleSaveUsername() {
+    if (!user) return;
+    const trimmed = newUsername.trim().toLowerCase();
+    if (trimmed.length < 3) { setNameError("Min 3 characters"); return; }
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) { setNameError("Letters, numbers, underscores only"); return; }
+    setNameError("");
+    setNameSaving(true);
+    const sb = createClient();
+    const { data: existing } = await sb.from("profiles").select("id").eq("username", trimmed).neq("id", user.id).maybeSingle();
+    if (existing) { setNameError("Username taken"); setNameSaving(false); return; }
+    await sb.from("profiles").update({ username: trimmed }).eq("id", user.id);
+    setNameSaving(false);
+    setEditingName(false);
+    window.location.reload();
+  }
+
+  // Change password
+  const [editingPw, setEditingPw] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [pwMsg, setPwMsg] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+
+  async function handleChangePassword() {
+    if (newPassword.length < 6) { setPwMsg("Min 6 characters"); return; }
+    setPwMsg("");
+    setPwSaving(true);
+    const sb = createClient();
+    const { error } = await sb.auth.updateUser({ password: newPassword });
+    setPwSaving(false);
+    if (error) { setPwMsg(error.message); return; }
+    setPwMsg("Password updated!");
+    setNewPassword("");
+    setTimeout(() => { setPwMsg(""); setEditingPw(false); }, 2000);
+  }
 
   const weeklyBars = useMemo(() => {
     const bars: { day: string; minutes: number; sessions: number }[] = [];
@@ -53,44 +118,136 @@ export default function ProfilePage() {
     <AppShell active="profile">
       <div className="section-pad">
         <div className="grid cols-2" style={{ alignItems: "start" }}>
-          <Card title="Profile" accent="var(--yellow)">
-            <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-              <div
-                style={{
-                  width: 72, height: 72, borderRadius: 20,
-                  background: "linear-gradient(135deg, var(--blue), var(--teal))",
-                  display: "grid", placeItems: "center",
-                  fontWeight: 800, fontSize: 22, color: "white",
-                  border: "1.5px solid rgba(0,0,0,0.06)",
-                  boxShadow: "0 4px 12px rgba(96,165,250,0.15)",
-                }}
-              >
-                {displayName.slice(0, 2).toUpperCase()}
+          {/* ─── Left Column ─── */}
+          <div className="grid" style={{ gap: 16 }}>
+            <Card title="Profile" accent="var(--yellow)">
+              <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+                <div
+                  style={{
+                    width: 72, height: 72, borderRadius: 20,
+                    background: "linear-gradient(135deg, var(--blue), var(--teal))",
+                    display: "grid", placeItems: "center",
+                    fontWeight: 800, fontSize: 22, color: "white",
+                    border: "1.5px solid rgba(0,0,0,0.06)",
+                    boxShadow: "0 4px 12px rgba(96,165,250,0.15)",
+                  }}
+                >
+                  {displayName.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div className="h2">{displayName}</div>
+                  <div className="p">{profile?.email || "Member"} · {streakVal}-day streak</div>
+                  <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+                    <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(45,212,191,0.15)" }}>Streak {streakVal}</span>
+                    {failedStake === 0 && commitments.length > 0 && (
+                      <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(244,114,182,0.12)" }}>Stake Safe</span>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="h2">{displayName}</div>
-                <div className="p">{profile?.email || "Resolution Builder"} · {streakVal}-day streak</div>
-                <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
-                  <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(45,212,191,0.15)" }}>Streak {streakVal}</span>
-                  {failedStake === 0 && commitments.length > 0 && (
-                    <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(244,114,182,0.12)" }}>Stake Safe</span>
+
+              <div className="grid cols-3" style={{ marginTop: 16 }}>
+                <Stat label="Commitments" value={String(commitments.length)} tint="var(--yellow)" />
+                <Stat label="Success" value={commitments.length > 0 ? `${successRate}%` : "-"} tint="var(--lime)" />
+                <Stat label="Focus" value={totalFocus >= 60 ? `${Math.round(totalFocus / 60)}h` : `${totalFocus}m`} tint="var(--teal)" />
+              </div>
+
+              <div className="grid cols-2" style={{ marginTop: 12 }}>
+                <Stat label="Sessions" value={String(sessions.length)} tint="var(--blue)" />
+                <Stat label="Tasks" value={String(tasks.length)} tint="var(--orange)" />
+              </div>
+            </Card>
+
+            {/* ─── Balance & Faucet ─── */}
+            <Card title="Balance" accent="var(--teal)">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <div>
+                  <div className="h2" style={{ fontSize: 28 }}>${balance ?? "..."}</div>
+                  <div className="p" style={{ marginTop: 4, fontSize: 12 }}>Demo balance for staking commitments</div>
+                </div>
+                <button className="neo-btn" onClick={handleTopup} style={{ background: "var(--teal)", padding: "10px 18px", fontSize: 14 }}>
+                  + Top Up $500
+                </button>
+              </div>
+              <div className="p" style={{ marginTop: 12, fontSize: 12, lineHeight: 1.6 }}>
+                This is simulated currency for accountability purposes. Top up anytime — like a faucet.
+                No real money is involved.
+              </div>
+            </Card>
+
+            {/* ─── Account Settings ─── */}
+            <Card title="Account Settings" accent="var(--blue)">
+              <div className="grid" style={{ gap: 14 }}>
+                {/* Change Username */}
+                <div className="neo-surface-flat" style={{ padding: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div>
+                      <div className="h3" style={{ fontSize: 14 }}>Username</div>
+                      <div className="p" style={{ marginTop: 2 }}>{displayName}</div>
+                    </div>
+                    {!editingName && (
+                      <button onClick={() => { setEditingName(true); setNewUsername(displayName); }} style={{
+                        padding: "5px 12px", fontSize: 12, fontWeight: 600, borderRadius: 8,
+                        border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
+                        cursor: "pointer", color: "var(--ink-soft)",
+                      }}>Edit</button>
+                    )}
+                  </div>
+                  {editingName && (
+                    <div className="animate-fade-in" style={{ marginTop: 10 }}>
+                      <input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} className="neo-input" placeholder="New username" />
+                      {nameError && <div className="p" style={{ marginTop: 4, fontSize: 12, color: "var(--pink)" }}>{nameError}</div>}
+                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <button className="neo-btn" onClick={handleSaveUsername} disabled={nameSaving} style={{ padding: "6px 14px", fontSize: 13, background: "var(--yellow)" }}>
+                          {nameSaving ? "Saving..." : "Save"}
+                        </button>
+                        <button onClick={() => { setEditingName(false); setNameError(""); }} style={{
+                          padding: "6px 12px", fontSize: 12, fontWeight: 600, borderRadius: 8,
+                          border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
+                          cursor: "pointer", color: "var(--ink-soft)",
+                        }}>Cancel</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Change Password */}
+                <div className="neo-surface-flat" style={{ padding: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                    <div>
+                      <div className="h3" style={{ fontSize: 14 }}>Password</div>
+                      <div className="p" style={{ marginTop: 2 }}>••••••••</div>
+                    </div>
+                    {!editingPw && (
+                      <button onClick={() => setEditingPw(true)} style={{
+                        padding: "5px 12px", fontSize: 12, fontWeight: 600, borderRadius: 8,
+                        border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
+                        cursor: "pointer", color: "var(--ink-soft)",
+                      }}>Change</button>
+                    )}
+                  </div>
+                  {editingPw && (
+                    <div className="animate-fade-in" style={{ marginTop: 10 }}>
+                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="neo-input" placeholder="New password (min 6 chars)" />
+                      {pwMsg && <div className="p" style={{ marginTop: 4, fontSize: 12, color: pwMsg === "Password updated!" ? "var(--teal)" : "var(--pink)" }}>{pwMsg}</div>}
+                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <button className="neo-btn" onClick={handleChangePassword} disabled={pwSaving} style={{ padding: "6px 14px", fontSize: 13, background: "var(--yellow)" }}>
+                          {pwSaving ? "Saving..." : "Update Password"}
+                        </button>
+                        <button onClick={() => { setEditingPw(false); setPwMsg(""); setNewPassword(""); }} style={{
+                          padding: "6px 12px", fontSize: 12, fontWeight: 600, borderRadius: 8,
+                          border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
+                          cursor: "pointer", color: "var(--ink-soft)",
+                        }}>Cancel</button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
+            </Card>
+          </div>
 
-            <div className="grid cols-3" style={{ marginTop: 16 }}>
-              <Stat label="Commitments" value={String(commitments.length)} tint="var(--yellow)" />
-              <Stat label="Success" value={commitments.length > 0 ? `${successRate}%` : "-"} tint="var(--lime)" />
-              <Stat label="Focus" value={totalFocus >= 60 ? `${Math.round(totalFocus / 60)}h` : `${totalFocus}m`} tint="var(--teal)" />
-            </div>
-
-            <div className="grid cols-2" style={{ marginTop: 12 }}>
-              <Stat label="Sessions" value={String(sessions.length)} tint="var(--blue)" />
-              <Stat label="Tasks" value={String(tasks.length)} tint="var(--orange)" />
-            </div>
-          </Card>
-
+          {/* ─── Right Column ─── */}
           <Card title="Statistics" accent="var(--pink)">
             <div className="grid" style={{ gap: 14 }}>
               <div>

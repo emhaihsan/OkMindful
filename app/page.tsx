@@ -13,12 +13,12 @@ const FEATURES = [
   },
   {
     title: "AI Advisor",
-    desc: "Gemini Flash-powered productivity coach that plans, reviews, and adapts your strategy.",
+    desc: "A smart productivity coach that plans, reviews, and adapts your strategy in real time.",
     tint: "var(--pink)",
   },
   {
-    title: "Opik Observability",
-    desc: "Every AI interaction is traced — spans, token usage, and feedback scores for full transparency.",
+    title: "Peer Validation",
+    desc: "Assign friends as validators — they verify your progress and keep you honest.",
     tint: "var(--blue)",
   },
 ];
@@ -108,7 +108,7 @@ export default function HomePage() {
               </h1>
               <p className="p" style={{ marginTop: 18, fontSize: 16, maxWidth: 440, lineHeight: 1.7 }}>
                 Create commitments, stake real money, track progress with Pomodoro,
-                and get AI-powered coaching — all with full LLM observability.
+                and get AI-powered coaching to finally achieve your goals.
               </p>
               <div style={{ display: "flex", gap: 10, marginTop: 28, flexWrap: "wrap" }}>
                 <Link className="neo-btn" style={{ padding: "12px 24px", fontSize: 15 }} href="/auth/register">
@@ -117,11 +117,6 @@ export default function HomePage() {
                 <Link className="neo-btn secondary" style={{ padding: "12px 24px", fontSize: 15 }} href="/auth/login">
                   Sign In
                 </Link>
-              </div>
-              <div style={{ display: "flex", gap: 8, marginTop: 22, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 10px", borderRadius: 999, background: "rgba(0,0,0,0.04)" }}>Gemini Flash</span>
-                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 10px", borderRadius: 999, background: "rgba(0,0,0,0.04)" }}>Opik Traced</span>
-                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 10px", borderRadius: 999, background: "rgba(0,0,0,0.04)" }}>Supabase</span>
               </div>
             </div>
 
@@ -206,25 +201,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ─── Tech Stack ─── */}
-        <section style={{ padding: "16px 0" }}>
-          <div className="neo-surface" style={{ padding: "18px 22px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div>
-                <div className="h3" style={{ fontSize: 16 }}>Built with</div>
-                <div className="p" style={{ marginTop: 4 }}>
-                  Next.js &bull; React 19 &bull; TypeScript &bull; Supabase &bull; Gemini Flash &bull; Opik
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {["Liquid Glass UI", "LLM Observability", "Open Source"].map((t) => (
-                  <span key={t} style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 10px", borderRadius: 999, background: "rgba(0,0,0,0.04)" }}>{t}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* ─── Final CTA ─── */}
         <section style={{ padding: "40px 0 56px", textAlign: "center" }}>
           <div className="h2">Ready to commit?</div>
@@ -246,10 +222,9 @@ export default function HomePage() {
       <footer style={{ padding: "24px 0 32px" }}>
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <span className="p" style={{ fontSize: 12 }}>
-            OKMindful &copy; 2026 &bull; Gemini Flash + Opik
+            OKMindful &copy; 2026
           </span>
           <div style={{ display: "flex", gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.03)" }}>Liquid Glass UI</span>
             <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.03)" }}>Open Source</span>
           </div>
         </div>

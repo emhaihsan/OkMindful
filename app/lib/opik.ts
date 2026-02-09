@@ -24,20 +24,27 @@ export async function createTrace(params: {
 }) {
   if (!enabled()) return null;
   try {
+    const body = {
+      traces: [
+        {
+          id: params.id,
+          name: params.name,
+          project_name: OPIK_PROJECT,
+          start_time: params.startTime || new Date().toISOString(),
+          input: params.input,
+          metadata: params.metadata || {},
+        },
+      ],
+    };
     const res = await fetch(`${OPIK_BASE_URL}/v1/private/traces`, {
       method: "POST",
       headers: headers(),
-      body: JSON.stringify({
-        id: params.id,
-        name: params.name,
-        project_name: OPIK_PROJECT,
-        start_time: params.startTime || new Date().toISOString(),
-        input: params.input,
-        metadata: params.metadata || {},
-      }),
+      body: JSON.stringify(body),
     });
+    if (!res.ok) console.error("[opik] createTrace failed:", res.status, await res.text().catch(() => ""));
     return res.ok ? { id: params.id } : null;
-  } catch {
+  } catch (e) {
+    console.error("[opik] createTrace error:", e);
     return null;
   }
 }
@@ -49,18 +56,25 @@ export async function endTrace(params: {
 }) {
   if (!enabled()) return null;
   try {
+    const body = {
+      traces: [
+        {
+          id: params.id,
+          end_time: new Date().toISOString(),
+          output: params.output,
+          usage: params.usage,
+        },
+      ],
+    };
     const res = await fetch(`${OPIK_BASE_URL}/v1/private/traces`, {
       method: "PATCH",
       headers: headers(),
-      body: JSON.stringify({
-        id: params.id,
-        end_time: new Date().toISOString(),
-        output: params.output,
-        usage: params.usage,
-      }),
+      body: JSON.stringify(body),
     });
+    if (!res.ok) console.error("[opik] endTrace failed:", res.status, await res.text().catch(() => ""));
     return res.ok;
-  } catch {
+  } catch (e) {
+    console.error("[opik] endTrace error:", e);
     return null;
   }
 }
@@ -79,25 +93,32 @@ export async function createSpan(params: {
 }) {
   if (!enabled()) return null;
   try {
+    const body = {
+      spans: [
+        {
+          id: params.id,
+          trace_id: params.traceId,
+          project_name: OPIK_PROJECT,
+          name: params.name,
+          type: params.type || "llm",
+          start_time: params.startTime || new Date().toISOString(),
+          end_time: params.endTime || new Date().toISOString(),
+          input: params.input,
+          output: params.output || {},
+          metadata: params.metadata || {},
+          usage: params.usage,
+        },
+      ],
+    };
     const res = await fetch(`${OPIK_BASE_URL}/v1/private/spans`, {
       method: "POST",
       headers: headers(),
-      body: JSON.stringify({
-        id: params.id,
-        trace_id: params.traceId,
-        project_name: OPIK_PROJECT,
-        name: params.name,
-        type: params.type || "llm",
-        start_time: params.startTime || new Date().toISOString(),
-        end_time: params.endTime || new Date().toISOString(),
-        input: params.input,
-        output: params.output || {},
-        metadata: params.metadata || {},
-        usage: params.usage,
-      }),
+      body: JSON.stringify(body),
     });
+    if (!res.ok) console.error("[opik] createSpan failed:", res.status, await res.text().catch(() => ""));
     return res.ok;
-  } catch {
+  } catch (e) {
+    console.error("[opik] createSpan error:", e);
     return null;
   }
 }
@@ -125,7 +146,8 @@ export async function addFeedbackScore(params: {
       ]),
     });
     return res.ok;
-  } catch {
+  } catch (e) {
+    console.error("[opik] addFeedbackScore error:", e);
     return null;
   }
 }

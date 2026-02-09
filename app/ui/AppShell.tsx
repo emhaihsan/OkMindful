@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "../lib/auth-context";
 import { AuthGuard } from "./AuthGuard";
 
-type Active = "home" | "dashboard" | "commitments" | "profile" | "chat" | "pomodoro";
+type Active = "home" | "dashboard" | "commitments" | "profile" | "chat" | "pomodoro" | "help";
 
 const NAV: { href: string; label: string; key: Active; tint: string }[] = [
   { href: "/dashboard", label: "Dashboard", key: "dashboard", tint: "var(--teal)" },
@@ -12,6 +12,7 @@ const NAV: { href: string; label: string; key: Active; tint: string }[] = [
   { href: "/pomodoro", label: "Pomodoro", key: "pomodoro", tint: "var(--lime)" },
   { href: "/chat", label: "Advisor", key: "chat", tint: "var(--pink)" },
   { href: "/profile", label: "Profile", key: "profile", tint: "var(--blue)" },
+  { href: "/help", label: "Help", key: "help", tint: "var(--orange)" },
 ];
 
 export function AppShell({
@@ -130,10 +131,9 @@ export function AppShell({
         <footer style={{ padding: "24px 0 32px" }}>
           <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <span className="p" style={{ fontSize: 12 }}>
-              OKMindful &copy; 2026 &bull; Gemini Flash + Opik
+              OKMindful &copy; 2026
             </span>
             <div style={{ display: "flex", gap: 6 }}>
-              <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.03)" }}>Liquid Glass UI</span>
               <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.03)" }}>Open Source</span>
             </div>
           </div>
