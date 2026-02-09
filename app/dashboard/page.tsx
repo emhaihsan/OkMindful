@@ -7,6 +7,7 @@ import { Card } from "../ui/Card";
 import { Stat } from "../ui/Stat";
 import { ConfirmModal, useConfirm } from "../ui/ConfirmModal";
 import { DonutChart, DonutLegend } from "../ui/DonutChart";
+import { CoachAdvice } from "../ui/CoachAdvice";
 import { useStore, parseTimestamp } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
 
@@ -113,6 +114,20 @@ export default function DashboardPage() {
         <div className="grid cols-2" style={{ marginTop: 18, alignItems: "start" }}>
           {/* ─── Left Column ─── */}
           <div className="grid" style={{ gap: 16 }}>
+            <CoachAdvice
+              page="dashboard"
+              triggerKey={today}
+              context={{
+                activeTasks: tasks.length,
+                activeCommitments: activeCommitments.length,
+                todaySessions: store.todaySessions().length,
+                todayFocusMinutes: todayMin,
+                streak: streakVal,
+                totalStake: activeCommitments.filter((c) => c.mode === "stake").reduce((a, c) => a + c.stakeAmount, 0),
+              }}
+              hint="This is the user's dashboard overview. Give a warm daily greeting with one actionable tip for today."
+            />
+
             {/* ─── Focus Time by Task (Donut) ─── */}
             <Card title="Focus Time by Task (7 days)" accent="var(--teal)">
               <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>

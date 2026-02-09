@@ -6,6 +6,7 @@ import { Card } from "../ui/Card";
 import { Stat } from "../ui/Stat";
 import { useStore } from "../lib/store";
 import { formatTimer, loadTimerState, saveTimerState } from "./timer-utils";
+import { CoachAdvice } from "../ui/CoachAdvice";
 
 export default function PomodoroPage() {
   const store = useStore();
@@ -236,6 +237,18 @@ export default function PomodoroPage() {
                 </div>
               </div>
             </Card>
+
+            <CoachAdvice
+              page="pomodoro"
+              triggerKey={`${new Date().toISOString().slice(0, 10)}-${Math.floor(todayS.length / 4)}`}
+              context={{
+                activeTasks: tasks.length,
+                todaySessions: todayS.length,
+                todayFocusMinutes: todayMin,
+                streak: streakVal,
+              }}
+              hint="The user is on the focus timer page. Give a short motivational boost about staying focused and one productivity tip."
+            />
 
             <Card title="Today's Stats" accent="var(--blue)">
               <div className="grid cols-3">

@@ -10,6 +10,7 @@ import { useBalance } from "../lib/hooks/useBalance";
 import { CommitmentForm } from "./CommitmentForm";
 import { CommitmentCard } from "./CommitmentCard";
 import { ValidatingCard } from "./ValidatingCard";
+import { CoachAdvice } from "../ui/CoachAdvice";
 
 export default function CommitmentsPage() {
   const store = useStore();
@@ -47,6 +48,16 @@ export default function CommitmentsPage() {
           <Stat label="Staked" value={`$${totalStake}`} tint="var(--teal)" />
           <Stat label="Validating" value={String(validating.filter((c) => c.status === "active").length)} tint="var(--orange)" />
         </div>
+        <CoachAdvice
+          page="commitments"
+          triggerKey={`${mine.length}-${mine.filter((c) => c.status === "active").length}-${mine.filter((c) => c.status === "completed").length}-${mine.filter((c) => c.status === "failed").length}`}
+          context={{
+            activeCommitments: activeCount,
+            totalStake,
+          }}
+          hint="The user is on the commitments page. Give encouragement about their commitment journey and one tip about setting or completing commitments."
+        />
+
         {balance !== null && balance < 100 && (
           <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10 }}>
             <span className="p" style={{ fontSize: 12, fontWeight: 600 }}>Low balance?</span>
