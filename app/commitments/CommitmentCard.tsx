@@ -84,14 +84,14 @@ export function CommitmentCard({ commitment: c, today, onConfirm }: CommitmentCa
             </button>
           )}
           <button
-            onClick={() => onConfirm("Delete Commitment", `Are you sure you want to delete "${c.title}"? This cannot be undone.${c.mode === "stake" ? " Your staked amount will not be refunded." : ""}`, "Delete", "var(--pink)", () => store.deleteCommitment(c.id))}
+            onClick={() => onConfirm("Give Up Commitment", `Are you sure you want to give up on "${c.title}"? This will be recorded as a failed commitment and cannot be undone.${c.mode === "stake" ? " Your staked amount will not be refunded." : ""}`, "Give Up", "var(--pink)", () => store.deleteCommitment(c.id))}
             style={{
               padding: "7px 12px", fontSize: 12, fontWeight: 600, borderRadius: 10,
               border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
               cursor: "pointer", color: "var(--ink-soft)",
             }}
           >
-            Delete
+            Give Up
           </button>
         </div>
       )}

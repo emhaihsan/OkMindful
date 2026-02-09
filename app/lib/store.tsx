@@ -350,8 +350,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [user, currentUser, refreshCommitments]);
 
   const deleteCommitment = useCallback(async (id: string) => {
-    setCommitments((prev) => prev.filter((c) => c.id !== id));
-    await sb().from("commitments").delete().eq("id", id);
+    setCommitments((prev) =>
+      prev.map((c) => (c.id === id && c.status === "active" ? { ...c, status: "failed" } : c))
+    );
+    await sb().from("commitments").update({ status: "failed" }).eq("id", id);
   }, []);
 
   const checkinCommitment = useCallback(async (id: string, date?: string) => {
