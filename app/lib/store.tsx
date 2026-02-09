@@ -297,6 +297,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // Deduct balance for stake mode
+    if (c.mode === "stake" && c.stakeAmount > 0) {
+      const { data: prof } = await sb().from("profiles").select("balance").eq("id", user!.id).single();
+      const curBal = (prof as { balance: number } | null)?.balance ?? 0;
+      if (curBal < c.stakeAmount) throw new Error("Insufficient balance");
+      await sb().from("profiles").update({ balance: curBal - c.stakeAmount }).eq("id", user!.id);
+    }
+
     // Insert commitment
     await sb().from("commitments").insert({
       id,

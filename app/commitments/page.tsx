@@ -1,15 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "../ui/AppShell";
 import { Card } from "../ui/Card";
 import { Stat } from "../ui/Stat";
 import { useStore } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
+import { createClient } from "../lib/supabase";
+
+const CHARITIES = [
+  { value: "WHO", label: "World Health Organization (WHO)" },
+  { value: "UNICEF", label: "UNICEF" },
+  { value: "Red Cross", label: "International Red Cross" },
+  { value: "WWF", label: "World Wildlife Fund (WWF)" },
+  { value: "Doctors Without Borders", label: "Doctors Without Borders (MSF)" },
+];
 
 export default function CommitmentsPage() {
   const store = useStore();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
+
+  // Balance
+  const [balance, setBalance] = useState<number | null>(null);
+  const loadBalance = useCallback(async () => {
+    if (!user) return;
+    const sb = createClient();
+    const { data } = await sb.from("profiles").select("balance").eq("id", user.id).single();
+    setBalance((data as { balance: number } | null)?.balance ?? 1000);
+  }, [user]);
+  useEffect(() => { loadBalance(); }, [loadBalance]);
+
+  async function handleTopup() {
+    if (!user) return;
+    const newBal = (balance ?? 0) + 500;
+    setBalance(newBal);
+    const sb = createClient();
+    await sb.from("profiles").update({ balance: newBal }).eq("id", user.id);
+  }
 
   const [tab, setTab] = useState<"mine" | "validating">("mine");
   const [showForm, setShowForm] = useState(false);
@@ -22,7 +49,7 @@ export default function CommitmentsPage() {
   const [duration, setDuration] = useState(30);
   const [customDuration, setCustomDuration] = useState("");
   const [deadlineDate, setDeadlineDate] = useState("");
-  const [fundDestination, setFundDestination] = useState("");
+  const [fundDestination, setFundDestination] = useState("WHO");
   const [validators, setValidators] = useState("");
   const [formError, setFormError] = useState("");
   const [creating, setCreating] = useState(false);
@@ -52,6 +79,10 @@ export default function CommitmentsPage() {
     if (effDuration < 1) { setFormError("Duration must be at least 1 day."); return; }
     const effStake = mode === "stake" ? getEffectiveStake() : 0;
     if (mode === "stake" && effStake < 1) { setFormError("Stake must be at least $1."); return; }
+    if (mode === "stake" && balance !== null && effStake > balance) {
+      setFormError(`Insufficient balance. You have $${balance} but need $${effStake}. Top up first.`);
+      return;
+    }
 
     setFormError("");
     setCreating(true);
@@ -69,7 +100,9 @@ export default function CommitmentsPage() {
       });
       setTitle(""); setDesc(""); setMode("commit"); setStakeAmount(50);
       setCustomStake(""); setDuration(30); setCustomDuration("");
-      setDeadlineDate(""); setFundDestination(""); setValidators("");
+      setDeadlineDate(""); setFundDestination("WHO"); setValidators("");
+      // Refresh balance after stake deduction
+      if (mode === "stake") loadBalance();
       setDurationType("preset"); setShowForm(false);
     } catch {
       setFormError("Failed to create commitment. Make sure validator usernames or emails are valid.");
@@ -99,11 +132,18 @@ export default function CommitmentsPage() {
           </button>
         </div>
 
-        <div className="grid cols-3" style={{ marginTop: 16 }}>
+        <div className="grid cols-4" style={{ marginTop: 16 }}>
+          <Stat label="Balance" value={balance !== null ? `$${balance}` : "..."} tint="var(--blue)" />
           <Stat label="My Active" value={String(activeCount)} tint="var(--yellow)" />
-          <Stat label="Total Stake" value={`$${totalStake}`} tint="var(--teal)" />
+          <Stat label="Staked" value={`$${totalStake}`} tint="var(--teal)" />
           <Stat label="Validating" value={String(validating.filter((c) => c.status === "active").length)} tint="var(--orange)" />
         </div>
+        {balance !== null && balance < 100 && (
+          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10 }}>
+            <span className="p" style={{ fontSize: 12, fontWeight: 600 }}>Low balance?</span>
+            <button className="neo-btn" onClick={handleTopup} style={{ background: "var(--teal)", padding: "6px 14px", fontSize: 12 }}>+ Top Up $500</button>
+          </div>
+        )}
 
         {/* ─── Create Form ─── */}
         {showForm && (
@@ -135,11 +175,22 @@ export default function CommitmentsPage() {
 
                     {/* Fund Destination */}
                     <div>
-                      <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>If I fail, send funds to:</span>
-                      <input value={fundDestination} onChange={(e) => setFundDestination(e.target.value)} placeholder="e.g. Red Cross, Wikipedia, my friend's Venmo..." className="neo-input" style={{ marginTop: 6 }} />
+                      <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>If I fail, donate to:</span>
+                      <select value={fundDestination} onChange={(e) => setFundDestination(e.target.value)} className="neo-input" style={{ marginTop: 6 }}>
+                        {CHARITIES.map((ch) => (
+                          <option key={ch.value} value={ch.value}>{ch.label}</option>
+                        ))}
+                      </select>
                       <div className="p" style={{ marginTop: 4, fontSize: 12 }}>
-                        Choose a charity, organization, or person to receive the stake if you don&apos;t complete.
+                        Your staked amount will be donated to this organization if you don&apos;t complete.
                       </div>
+                    </div>
+                    {/* Balance indicator */}
+                    <div className="neo-surface-flat" style={{ padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span className="p" style={{ fontSize: 13, fontWeight: 600 }}>Your balance: ${balance ?? "..."}</span>
+                      {balance !== null && getEffectiveStake() > balance && (
+                        <span className="p" style={{ fontSize: 12, color: "var(--pink)", fontWeight: 600 }}>Insufficient — top up on Profile page</span>
+                      )}
                     </div>
                   </div>
                 )}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "../lib/auth-context";
 import { AuthGuard } from "./AuthGuard";
+import { ChatBubble } from "./ChatBubble";
 
 type Active = "home" | "dashboard" | "commitments" | "profile" | "chat" | "pomodoro" | "help";
 
@@ -127,6 +128,7 @@ export function AppShell({
         </header>
 
         <main className="container" style={{ flex: 1 }}>{children}</main>
+        {active !== "chat" && <ChatBubble />}
 
         <footer style={{ padding: "24px 0 32px" }}>
           <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
