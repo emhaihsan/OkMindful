@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AppShell } from "../ui/AppShell";
 import { Card } from "../ui/Card";
 import { Stat } from "../ui/Stat";
 import { useStore } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
 import { createClient } from "../lib/supabase";
+import { useBalance } from "../lib/hooks/useBalance";
 
 const COLORS = ["var(--yellow)", "var(--teal)", "var(--blue)", "var(--pink)", "var(--lime)", "var(--orange)", "var(--yellow)"];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -23,28 +24,7 @@ export default function ProfilePage() {
   const failedStake = commitments.filter((c) => c.status === "failed" && c.mode === "stake").length;
   const successRate = commitments.length > 0 ? Math.round((completedCommitments / commitments.length) * 100) : 0;
 
-  // Balance state
-  const [balance, setBalance] = useState<number | null>(null);
-  const [balanceLoaded, setBalanceLoaded] = useState(false);
-
-  const loadBalance = useCallback(async () => {
-    if (!user || balanceLoaded) return;
-    const sb = createClient();
-    const { data } = await sb.from("profiles").select("balance").eq("id", user.id).single();
-    setBalance((data as { balance: number } | null)?.balance ?? 1000);
-    setBalanceLoaded(true);
-  }, [user, balanceLoaded]);
-
-  // Load balance on mount
-  if (user && !balanceLoaded) loadBalance();
-
-  async function handleTopup() {
-    if (!user) return;
-    const newBal = (balance ?? 0) + 500;
-    setBalance(newBal);
-    const sb = createClient();
-    await sb.from("profiles").update({ balance: newBal }).eq("id", user.id);
-  }
+  const { balance, topUp } = useBalance(user?.id);
 
   // Edit username
   const [editingName, setEditingName] = useState(false);
@@ -165,7 +145,7 @@ export default function ProfilePage() {
                   <div className="h2" style={{ fontSize: 28 }}>${balance ?? "..."}</div>
                   <div className="p" style={{ marginTop: 4, fontSize: 12 }}>Demo balance for staking commitments</div>
                 </div>
-                <button className="neo-btn" onClick={handleTopup} style={{ background: "var(--teal)", padding: "10px 18px", fontSize: 14 }}>
+                <button className="neo-btn" onClick={() => topUp()} style={{ background: "var(--teal)", padding: "10px 18px", fontSize: 14 }}>
                   + Top Up $500
                 </button>
               </div>

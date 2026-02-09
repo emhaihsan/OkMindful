@@ -5,41 +5,13 @@ import { AppShell } from "../ui/AppShell";
 import { Card } from "../ui/Card";
 import { Stat } from "../ui/Stat";
 import { useStore } from "../lib/store";
-
-function fmt(totalSeconds: number) {
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-}
-
-const STORAGE_KEY = "ok_pomodoro_state";
-
-interface TimerState {
-  mode: "focus" | "break";
-  running: boolean;
-  endAt: number | null;
-  remaining: number;
-  completedCount: number;
-  selectedTaskId: string;
-  focusMinutes: number;
-}
-
-function loadState(): TimerState | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as TimerState) : null;
-  } catch { return null; }
-}
-
-function saveState(s: TimerState) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch { /* */ }
-}
+import { formatTimer, loadTimerState, saveTimerState } from "./timer-utils";
 
 export default function PomodoroPage() {
   const store = useStore();
   const { tasks, sessions } = store;
 
-  const init = useRef(loadState());
+  const init = useRef(loadTimerState());
   const now = Date.now();
   const r = init.current;
 
@@ -59,7 +31,7 @@ export default function PomodoroPage() {
   const [newTarget, setNewTarget] = useState(4);
 
   const persist = useCallback(() => {
-    saveState({ mode, running, endAt: running ? Date.now() + seconds * 1000 : null, remaining: seconds, completedCount, selectedTaskId, focusMinutes });
+    saveTimerState({ mode, running, endAt: running ? Date.now() + seconds * 1000 : null, remaining: seconds, completedCount, selectedTaskId, focusMinutes });
   }, [mode, running, seconds, completedCount, selectedTaskId, focusMinutes]);
   useEffect(() => { persist(); }, [persist]);
 
@@ -254,7 +226,7 @@ export default function PomodoroPage() {
                 )}
 
                 <div style={{ marginTop: 16, padding: "28px 18px", textAlign: "center", borderRadius: 18, background: mode === "focus" ? "linear-gradient(135deg, rgba(251,191,36,0.15), rgba(251,191,36,0.08))" : "linear-gradient(135deg, rgba(244,114,182,0.15), rgba(244,114,182,0.08))", border: `1.5px solid ${mode === "focus" ? "rgba(251,191,36,0.2)" : "rgba(244,114,182,0.2)"}` }}>
-                  <div className="h1" style={{ fontSize: 64, fontWeight: 800 }}>{fmt(seconds)}</div>
+                  <div className="h1" style={{ fontSize: 64, fontWeight: 800 }}>{formatTimer(seconds)}</div>
                   <div className="p" style={{ color: "var(--ink)", fontWeight: 700, marginTop: 4, fontSize: 13 }}>{mode === "focus" ? "FOCUS" : "BREAK"} · Session {completedCount + 1}</div>
                 </div>
 
