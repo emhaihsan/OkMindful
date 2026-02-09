@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     if (context.activeCommitments !== undefined) parts.push(`- Active commitments: ${context.activeCommitments}`);
     if (context.todaySessions !== undefined) parts.push(`- Today's focus sessions: ${context.todaySessions}`);
     if (context.todayFocusMinutes !== undefined) parts.push(`- Today's focus minutes: ${context.todayFocusMinutes}`);
-    if (context.streak !== undefined) parts.push(`- Current streak: ${context.streak} days`);
+    if (context.streak !== undefined) parts.push(`- Current streak: ${context.streak}`);
     if (context.totalStake !== undefined) parts.push(`- Total active stake: $${context.totalStake}`);
     systemPrompt += parts.join("\n");
   }

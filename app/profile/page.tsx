@@ -116,7 +116,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <div className="h2">{displayName}</div>
-                  <div className="p">{profile?.email || "Member"} · {streakVal}-day streak</div>
+                  <div className="p">{profile?.email || "Member"} · Streak {streakVal}</div>
                   <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
                     <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(141,177,94,0.15)" }}>Streak {streakVal}</span>
                     {failedStake === 0 && commitments.length > 0 && (

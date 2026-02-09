@@ -10,7 +10,7 @@ import { ChatSidebar } from "./ChatSidebar";
 
 export default function ChatPage() {
   const store = useStore();
-  const { messages, commitments, tasks } = store;
+  const { messages, tasks } = store;
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [activeConvoId, setActiveConvoId] = useState<string | null>(null);
@@ -23,7 +23,8 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const activeCommitments = commitments.filter((c) => c.status === "active");
+  const myCommitments = store.myCommitments();
+  const activeCommitments = myCommitments.filter((c) => c.status === "active");
   const todayMin = store.todayFocusMinutes();
   const todayS = store.todaySessions();
   const streakVal = store.streak();
@@ -92,12 +93,12 @@ export default function ChatPage() {
   }, [loading, displayMessages, store, activeCommitments, tasks, todayS, todayMin, streakVal, activeConvoId, conversations]);
 
   const quickPrompts = [
-    { label: "Plan my week", prompt: `Create a 7-day productivity plan. I have ${tasks.length} tasks and ${activeCommitments.length} active commitments. Streak: ${streakVal} days.` },
-    { label: "Stake strategy", prompt: `Help me set safe stake rules. I have ${activeCommitments.length} active commitments.` },
-    { label: "Review today", prompt: `Review my productivity today: ${todayS.length} sessions, ${todayMin}m focus. Streak: ${streakVal} days.` },
+    { label: "Plan my week", prompt: "Create a 7-day productivity plan based on my current tasks and commitments." },
+    { label: "Stake strategy", prompt: "Help me set safe stake rules for my commitments." },
+    { label: "Review today", prompt: "Review my productivity today and suggest improvements." },
     { label: "Diagnose issues", prompt: "I've been feeling unproductive. Help me diagnose the issue and give concrete solutions." },
-    { label: "Motivate me", prompt: `Motivate me to stay consistent with my resolutions! Streak: ${streakVal} days.` },
-    { label: "Optimize workflow", prompt: `Analyze my work patterns. ${todayS.length} sessions today, ${tasks.length} tasks, ${activeCommitments.length} commitments.` },
+    { label: "Motivate me", prompt: "Motivate me to stay consistent with my resolutions!" },
+    { label: "Optimize workflow", prompt: "Analyze my work patterns and suggest how I can be more productive." },
   ];
 
   return (

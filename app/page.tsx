@@ -64,7 +64,7 @@ const STEPS = [
     num: "03", title: "Check In & Self-Assess", tint: "var(--pink)",
     desc: "Check in daily, weekly, or at the end of your commitment. Self-assess before validators can review.",
     mockup: [
-      { label: "Streak", value: "7 days", color: "#F6B132" },
+      { label: "Streak", value: "7", color: "#F6B132" },
       { label: "Progress", value: "68%", color: "#8DB15E" },
       { label: "Status", value: "On Track", color: "#1A3E5C" },
     ],

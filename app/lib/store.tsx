@@ -28,6 +28,18 @@ function todayStr() {
   return localDateStr();
 }
 
+// Parse a timestamp string ensuring UTC interpretation.
+// Supabase may return timestamps without timezone (e.g. "2026-02-08T18:00:00")
+// which JS Date() would wrongly parse as local time. This forces UTC.
+export function parseTimestamp(ts: string): Date {
+  if (!ts) return new Date(NaN);
+  // If no timezone indicator present, append Z to treat as UTC
+  if (!ts.includes("Z") && !ts.includes("+") && !/\d{2}:\d{2}$/.test(ts.slice(-6))) {
+    return new Date(ts + "Z");
+  }
+  return new Date(ts);
+}
+
 /* ── Row → App model mappers ── */
 
 interface CommitmentRow {
@@ -426,7 +438,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /* ── Derived helpers ── */
   const todaySessions = useCallback(() => {
     const d = todayStr();
-    return sessions.filter((s) => localDateStr(new Date(s.endedAt)) === d);
+    return sessions.filter((s) => localDateStr(parseTimestamp(s.endedAt)) === d);
   }, [sessions]);
 
   const todayFocusMinutes = useCallback(() => {
@@ -434,36 +446,56 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [todaySessions]);
 
   const streak = useCallback(() => {
-    const now = new Date();
-    const todayLocal = localDateStr(now);
+    const today = new Date();
+    const todayStr = localDateStr(today);
 
-    // Convert session endedAt (UTC ISO string) to local date string for comparison
-    const sessionLocalDates = new Set(
-      sessions.filter((s) => s.completed).map((s) => localDateStr(new Date(s.endedAt)))
-    );
+    // 1. Collect all unique activity dates into a Set
+    const activityDates = new Set<string>();
 
-    const hasActivity = (dateStr: string) => {
-      return sessionLocalDates.has(dateStr)
-        || commitments.some((c) => c.dailyCheckins[dateStr]);
-    };
+    // From completed sessions (parse with UTC-safe helper)
+    for (const s of sessions) {
+      if (s.completed) activityDates.add(localDateStr(parseTimestamp(s.endedAt)));
+    }
 
-    // Check if today has activity
-    const todayActive = hasActivity(todayLocal);
+    // From own commitments' daily check-ins (skip internal keys like __self_assigned__)
+    for (const c of commitments) {
+      if (c.owner !== currentUser) continue;
+      for (const dateKey of Object.keys(c.dailyCheckins)) {
+        if (dateKey.startsWith("__")) continue;
+        if (c.dailyCheckins[dateKey]) activityDates.add(dateKey);
+      }
+    }
 
-    // Count consecutive days backward starting from yesterday
-    let count = todayActive ? 1 : 0;
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    if (activityDates.size === 0) return 0;
+
+    // 2. Sort dates descending to get the most recent activity
+    const sorted = Array.from(activityDates).sort().reverse();
+    const lastActivityDate = sorted[0];
+
+    // 3. If last activity is not today or yesterday, streak is broken
+    const yesterdayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    const yesterdayStr = localDateStr(yesterdayDate);
+
+    if (lastActivityDate !== todayStr && lastActivityDate !== yesterdayStr) {
+      return 0;
+    }
+
+    // 4. Walk through sorted dates and count consecutive days from the most recent
+    let count = 0;
+    let cursor = lastActivityDate === todayStr ? today : yesterdayDate;
+
     for (let i = 0; i < 365; i++) {
-      const ds = localDateStr(d);
-      if (hasActivity(ds)) {
+      const cursorStr = localDateStr(cursor);
+      if (activityDates.has(cursorStr)) {
         count++;
+        cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() - 1);
       } else {
         break;
       }
-      d.setDate(d.getDate() - 1);
     }
+
     return count;
-  }, [sessions, commitments]);
+  }, [sessions, commitments, currentUser]);
 
   const taskById = useCallback((id: string) => tasks.find((t) => t.id === id), [tasks]);
 

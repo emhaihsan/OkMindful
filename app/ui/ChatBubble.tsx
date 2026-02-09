@@ -31,10 +31,22 @@ export function ChatBubble() {
     // Also save to store so it appears in /chat history
     await store.addMessage("user", userText);
 
+    const myCommitments = store.myCommitments();
+    const activeCommitments = myCommitments.filter((c) => c.status === "active");
+    const ctx = {
+      activeTasks: store.tasks.length,
+      activeCommitments: activeCommitments.length,
+      todaySessions: store.todaySessions().length,
+      todayFocusMinutes: store.todayFocusMinutes(),
+      streak: store.streak(),
+      totalStake: activeCommitments.filter((c) => c.mode === "stake").reduce((a, c) => a + c.stakeAmount, 0),
+    };
+
     try {
       const { content, traceId } = await streamChat(
         newMsgs.map((m) => ({ role: m.role, content: m.content })),
         (token) => setStreamingText((prev) => prev + token),
+        ctx,
       );
       const reply = content || "No response received.";
       setLocalMsgs((prev) => [...prev, { role: "assistant", content: reply }]);

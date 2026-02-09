@@ -7,7 +7,7 @@ import { Card } from "../ui/Card";
 import { Stat } from "../ui/Stat";
 import { ConfirmModal, useConfirm } from "../ui/ConfirmModal";
 import { DonutChart, DonutLegend } from "../ui/DonutChart";
-import { useStore } from "../lib/store";
+import { useStore, parseTimestamp } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
 
 const TASK_COLORS = [
@@ -35,13 +35,13 @@ export default function DashboardPage() {
   const completedCommitments = mine.filter((c) => c.status === "completed").length;
   const failedCommitments = mine.filter((c) => c.status === "failed").length;
   const resolvedCommitments = completedCommitments + failedCommitments;
-  const fulfillmentPct = resolvedCommitments > 0 ? Math.round((completedCommitments / resolvedCommitments) * 100) : (totalCommitments > 0 ? 0 : 100);
+  const fulfillmentPct = resolvedCommitments > 0 ? Math.round((completedCommitments / resolvedCommitments) * 100) : null;
 
   // Weekly focus time (last 7 days)
   const weeklyData = useMemo(() => {
     const now = new Date();
     const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-    const weeklySessions = sessions.filter((s) => new Date(s.endedAt) >= weekAgo);
+    const weeklySessions = sessions.filter((s) => parseTimestamp(s.endedAt) >= weekAgo);
     const totalMinutes = weeklySessions.reduce((a, s) => a + s.durationMinutes, 0);
 
     // Group by task for donut chart
@@ -68,7 +68,7 @@ export default function DashboardPage() {
       const dayLabel = d.toLocaleDateString("en-US", { weekday: "short" });
       const mins = weeklySessions
         .filter((s) => {
-          const sd = new Date(s.endedAt);
+          const sd = parseTimestamp(s.endedAt);
           return `${sd.getFullYear()}-${String(sd.getMonth() + 1).padStart(2, "0")}-${String(sd.getDate()).padStart(2, "0")}` === ds;
         })
         .reduce((a, s) => a + s.durationMinutes, 0);
@@ -106,8 +106,8 @@ export default function DashboardPage() {
         <div className="grid cols-4" style={{ marginTop: 18 }}>
           <Stat label="Total Commitments" value={String(totalCommitments)} tint="var(--blue)" />
           <Stat label="Weekly Focus" value={`${weeklyData.totalMinutes}m`} tint="var(--teal)" />
-          <Stat label="Fulfillment" value={`${fulfillmentPct}%`} tint={fulfillmentPct >= 50 ? "var(--lime)" : "var(--pink)"} />
-          <Stat label="Streak" value={`${streakVal} day${streakVal !== 1 ? "s" : ""}`} tint="var(--yellow)" />
+          <Stat label="Fulfillment" value={fulfillmentPct !== null ? `${fulfillmentPct}%` : "-"} tint={fulfillmentPct !== null && fulfillmentPct >= 50 ? "var(--lime)" : "var(--ink-soft)"} />
+          <Stat label="Streak" value={String(streakVal)} tint="var(--yellow)" />
         </div>
 
         <div className="grid cols-2" style={{ marginTop: 18, alignItems: "start" }}>
@@ -169,7 +169,7 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-soft)", marginTop: 2 }}>Failed</div>
                 </div>
               </div>
-              {resolvedCommitments > 0 && (
+              {fulfillmentPct !== null && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Fulfillment rate</span>
