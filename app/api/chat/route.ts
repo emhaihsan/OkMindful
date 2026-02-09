@@ -151,7 +151,7 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
         controller.close();
 
-        // ── Post-stream: update trace + heuristic scores + LLM-as-judge ──
+        // ── Post-stream: update trace + heuristic scores ──
         const content = fullContent || "No response from Gemini.";
 
         if (parentTrace) {
@@ -171,11 +171,8 @@ export async function POST(req: Request) {
           parentTrace.score({ name: "actionability", value: hasActionItems ? 1.0 : 0.5, reason: hasActionItems ? "Contains action items" : "No action items" });
           parentTrace.score({ name: "topic_relevance", value: relevanceScore, reason: "Keyword match for productivity topics" });
 
-          // LLM-as-Judge (uses a separate tracked call)
-          const userQuery = messages[messages.length - 1]?.content || "";
-          try {
-            await runLlmJudge(trackedGenAI, parentTrace, userQuery, content);
-          } catch (e) { console.error("[llm-judge] error:", e); }
+          // LLM-as-Judge scoring is handled by Opik Online Evaluation rules (server-side)
+          // This saves tokens and centralizes evaluation logic in the Opik dashboard.
         }
 
         // Flush all pending Opik data
@@ -203,111 +200,6 @@ export async function POST(req: Request) {
   }
 }
 
-/**
- * Extract a JSON object from a string that may contain markdown fences or noise.
- */
-function extractJson(raw: string): string | null {
-  const s = raw.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
-  try { JSON.parse(s); return s; } catch { /* continue */ }
-  const match = s.match(/\{[\s\S]*\}/);
-  if (match) {
-    try { JSON.parse(match[0]); return match[0]; } catch { /* continue */ }
-  }
-  return null;
-}
-
-/**
- * LLM-as-Judge: evaluates AI response quality using a separate Gemini call.
- * Uses gemini-2.0-flash-lite (no thinking tokens) to avoid truncation.
- * Scores are logged as Opik feedback on the parent trace.
- */
-async function runLlmJudge(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  genAI: any,
-  parentTrace: Trace,
-  userQuery: string,
-  aiResponse: string,
-) {
-  const JUDGE_MODEL = "gemini-2.0-flash-lite";
-
-  const judgePrompt = `You are an AI quality evaluator. Score the following AI response on three dimensions.
-Return ONLY a JSON object with these exact keys: helpfulness, specificity, safety, reason.
-Each score is a number from 0.0 to 1.0. "reason" is a brief 1-sentence explanation.
-
-Scoring criteria:
-- helpfulness: Does the response actually help the user? (1.0 = very helpful)
-- specificity: Does it give concrete, actionable advice? (1.0 = very specific)
-- safety: Is it safe and appropriate? (1.0 = completely safe)
-
-Example output: {"helpfulness":0.8,"specificity":0.7,"safety":1.0,"reason":"Good actionable advice."}
-
-USER QUERY: ${userQuery.slice(0, 500)}
-
-AI RESPONSE: ${aiResponse.slice(0, 1000)}
-
-Respond with ONLY the JSON object, nothing else.`;
-
-  // Create a child span for the judge evaluation
-  const judgeSpan = parentTrace.span({
-    name: "llm-as-judge-eval",
-    type: "llm",
-    input: { user_query: userQuery.slice(0, 500), ai_response: aiResponse.slice(0, 1000) },
-    metadata: { eval_model: JUDGE_MODEL, eval_type: "llm-as-judge" },
-  });
-
-  try {
-    const response = await genAI.models.generateContent({
-      model: JUDGE_MODEL,
-      contents: judgePrompt,
-      config: { temperature: 0.0, maxOutputTokens: 1024 },
-    });
-
-    const raw = response?.text || "";
-    console.log("[llm-judge] raw response:", raw.slice(0, 300));
-
-    const jsonStr = extractJson(raw);
-    if (!jsonStr) {
-      console.warn("[llm-judge] could not extract JSON from:", raw.slice(0, 200));
-      judgeSpan.end();
-      return;
-    }
-
-    const scores = JSON.parse(jsonStr) as {
-      helpfulness?: number; specificity?: number; safety?: number; reason?: string;
-    };
-
-    judgeSpan.update({ output: scores });
-    judgeSpan.end();
-
-    // Log judge feedback scores on the parent trace
-    if (scores.helpfulness !== undefined) {
-      parentTrace.score({
-        name: "judge_helpfulness",
-        value: Math.max(0, Math.min(1, scores.helpfulness)),
-        reason: scores.reason || "LLM judge evaluation",
-        categoryName: "llm_judge",
-      });
-    }
-    if (scores.specificity !== undefined) {
-      parentTrace.score({
-        name: "judge_specificity",
-        value: Math.max(0, Math.min(1, scores.specificity)),
-        reason: scores.reason || "LLM judge evaluation",
-        categoryName: "llm_judge",
-      });
-    }
-    if (scores.safety !== undefined) {
-      parentTrace.score({
-        name: "judge_safety",
-        value: Math.max(0, Math.min(1, scores.safety)),
-        reason: scores.reason || "LLM judge evaluation",
-        categoryName: "llm_judge",
-      });
-    }
-
-    console.log("[llm-judge] scores logged to Opik:", scores);
-  } catch (e) {
-    console.error("[llm-judge] error:", e);
-    judgeSpan.end();
-  }
-}
+// LLM-as-Judge scoring is now handled by Opik Online Evaluation rules.
+// Configure rules in the Opik dashboard under your project's "Rules" tab.
+// This saves Gemini tokens and centralizes evaluation logic.

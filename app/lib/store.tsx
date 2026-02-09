@@ -116,7 +116,7 @@ interface Store {
   myCommitments: () => Commitment[];
   validatingCommitments: () => Commitment[];
 
-  addMessage: (role: "user" | "assistant", content: string, opikTraceId?: string) => Promise<ChatMessage>;
+  addMessage: (role: "user" | "assistant", content: string, opikTraceId?: string, conversationId?: string) => Promise<ChatMessage>;
   clearMessages: () => Promise<void>;
 
   todaySessions: () => PomodoroSession[];
@@ -392,8 +392,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [commitments, currentUser]);
 
   /* ── Messages ── */
-  const addMessage = useCallback(async (role: "user" | "assistant", content: string, opikTraceId?: string) => {
-    const m: ChatMessage = { id: uid(), role, content, timestamp: new Date().toISOString(), opikTraceId };
+  const addMessage = useCallback(async (role: "user" | "assistant", content: string, opikTraceId?: string, conversationId?: string) => {
+    const m: ChatMessage = { id: uid(), role, content, timestamp: new Date().toISOString(), opikTraceId, conversationId };
     setMessages((prev) => [...prev, m]);
     await sb().from("chat_messages").insert({
       id: m.id, user_id: user!.id, role, content, opik_trace_id: opikTraceId || null,

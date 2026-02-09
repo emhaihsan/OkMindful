@@ -39,4 +39,5 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   opikTraceId?: string;
+  conversationId?: string;
 }
