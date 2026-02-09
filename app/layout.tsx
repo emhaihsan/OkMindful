@@ -7,8 +7,8 @@ import { StoreProvider } from "./lib/store";
 const geist = Geist({ subsets: ["latin"], weight: ["400", "500", "700", "800"] });
 
 export const metadata: Metadata = {
-  title: "OKMindful — Next-Level Commitments",
-  description: "Commit, stake, and crush your 2026 resolutions with AI-powered accountability.",
+  title: "OKMindful | Achieve Your Resolutions",
+  description: "Set resolutions, stake real money, track progress, and get AI coaching to finally achieve your goals.",
   icons: {
     icon: "/logo.ico",
     apple: "/logo.png",

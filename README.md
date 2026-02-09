@@ -2,7 +2,7 @@
 
 **Turn your goals into results — with stakes, focus, and AI coaching.**
 
-OKMindful is an accountability platform that helps you achieve your goals. It combines commitment tracking with optional financial stakes, a built-in focus timer, peer validation, and an AI productivity coach.
+OKMindful is an accountability platform that helps you achieve your resolutions and goals. It combines commitment tracking with optional financial stakes, a built-in focus timer, peer validation, and an AI productivity coach.
 
 ## Features
 

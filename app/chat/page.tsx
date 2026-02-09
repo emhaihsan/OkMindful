@@ -181,7 +181,7 @@ export default function ChatPage() {
     { label: "Stake strategy", prompt: `Help me set safe stake rules. I have ${activeCommitments.length} active commitments.` },
     { label: "Review today", prompt: `Review my productivity today: ${todayS.length} sessions, ${todayMin}m focus. Streak: ${streakVal} days.` },
     { label: "Diagnose issues", prompt: "I've been feeling unproductive. Help me diagnose the issue and give concrete solutions." },
-    { label: "Motivate me", prompt: `Motivate me to stay consistent with my 2026 resolutions! Streak: ${streakVal} days.` },
+    { label: "Motivate me", prompt: `Motivate me to stay consistent with my resolutions! Streak: ${streakVal} days.` },
     { label: "Optimize workflow", prompt: `Analyze my work patterns. ${todayS.length} sessions today, ${tasks.length} tasks, ${activeCommitments.length} commitments.` },
   ];
 

@@ -9,9 +9,9 @@ const SECTIONS = [
     title: "Getting Started",
     accent: "var(--yellow)",
     items: [
-      { q: "What is OKMindful?", a: "OKMindful is an accountability platform that helps you stick to your 2026 goals. Create commitments, stake money, track focus sessions, and get AI-powered coaching." },
+      { q: "What is OKMindful?", a: "OKMindful helps you actually achieve your resolutions. Create commitments, stake money, track focus sessions, and get AI coaching to stay on track." },
       { q: "How do I create a commitment?", a: "Go to the Commitments page, click '+ New Commitment', fill in the title, choose your mode (commit only or commit + stake), set a duration, and optionally assign validators." },
-      { q: "What's the difference between Commit and Stake?", a: "Commit Only is honor-system — you track progress but there's no financial consequence. Commit + Stake lets you put money on the line. If you fail, the stake goes to your chosen destination (charity, friend, etc.)." },
+      { q: "What's the difference between Commit and Stake?", a: "Commit Only is honor-system: you track progress but there's no financial consequence. Commit + Stake lets you put money on the line. If you fail, the stake goes to your chosen charity." },
     ],
   },
   {
@@ -27,9 +27,9 @@ const SECTIONS = [
     title: "Balance & Stakes",
     accent: "var(--pink)",
     items: [
-      { q: "How does the balance system work?", a: "Every new account starts with a $1,000 demo balance. This is simulated currency — no real money is involved. You can top up anytime from your profile." },
-      { q: "What happens if I fail a staked commitment?", a: "The staked amount is recorded as going to your chosen fund destination (charity, organization, or person). In this demo version, no actual transfer occurs." },
-      { q: "Can I choose where failed stakes go?", a: "Yes! When creating a staked commitment, you can specify where the money should go if you fail — e.g., a charity like Red Cross, or a friend." },
+      { q: "How does the balance system work?", a: "Every new account starts with a $1,000 demo balance. This is simulated currency, no real money is involved. You can top up anytime from your profile." },
+      { q: "What happens if I fail a staked commitment?", a: "The staked amount is recorded as going to your chosen fund destination (charity or organization). In this demo version, no actual transfer occurs." },
+      { q: "Can I choose where failed stakes go?", a: "Yes! When creating a staked commitment, you can specify where the money should go if you fail, for example a charity like Red Cross or UNICEF." },
     ],
   },
   {
@@ -45,16 +45,15 @@ const SECTIONS = [
     title: "Focus Timer",
     accent: "var(--lime)",
     items: [
-      { q: "How does the Focus Timer work?", a: "Create a task, set a target number of sessions, then start the timer. Choose any duration that works for you — from 1 minute to 45 minutes. Completed sessions are logged automatically." },
+      { q: "How does the Focus Timer work?", a: "Create a task, set a target number of sessions, then start the timer. Choose any duration from 1 to 45 minutes. Completed sessions are logged automatically." },
       { q: "Does the timer count toward my streak?", a: "Yes! Completing at least one focus session or checking in on a commitment counts toward your daily streak." },
     ],
   },
   {
-    title: "Technical Details",
+    title: "About",
     accent: "var(--orange)",
     items: [
-      { q: "What technologies power OKMindful?", a: "The app is built with Next.js, React, and TypeScript. It uses Supabase for authentication and database, Google Gemini for AI, and Comet Opik for LLM observability and evaluation." },
-      { q: "What is LLM observability?", a: "Every AI interaction is automatically traced behind the scenes — including input/output, token usage, response time, and quality scores. This helps ensure the AI gives high-quality advice." },
+      { q: "How does the AI Advisor improve over time?", a: "Every AI conversation is monitored for quality. Response helpfulness, relevance, and actionability are scored automatically so the coaching gets better over time." },
       { q: "Is OKMindful open source?", a: "Yes! The full source code is available. Check the project repository for details." },
     ],
   },

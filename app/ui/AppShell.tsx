@@ -117,7 +117,7 @@ export function AppShell({
         <footer style={{ padding: "24px 0 32px" }}>
           <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <span className="p" style={{ fontSize: 12 }}>
-              OKMindful &copy; 2026
+              OKMindful &copy; {new Date().getFullYear()}
             </span>
             <div style={{ display: "flex", gap: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.03)" }}>Open Source</span>

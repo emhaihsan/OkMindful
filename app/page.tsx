@@ -8,7 +8,7 @@ const FEATURES = [
   {
     icon: "🎯",
     title: "Commitment Engine",
-    desc: "Create commitments with optional financial stakes. Choose daily, weekly, or end-of-period check-ins. Miss your target? The money goes to charity.",
+    desc: "Create resolutions with optional financial stakes. Choose daily, weekly, or end-of-period check-ins. Miss your target? The money goes to charity.",
     tint: "var(--gold)",
     bgLight: "rgba(246,177,50,0.12)",
     borderLight: "rgba(246,177,50,0.2)",
@@ -24,7 +24,7 @@ const FEATURES = [
   {
     icon: "🤖",
     title: "AI Advisor",
-    desc: "A context-aware productivity coach powered by Gemini. It knows your stats, plans your week, and adapts strategies in real time.",
+    desc: "A context-aware productivity coach powered by AI. It knows your stats, plans your week, and adapts strategies in real time.",
     tint: "var(--pink)",
     bgLight: "rgba(232,114,154,0.12)",
     borderLight: "rgba(232,114,154,0.2)",
@@ -32,7 +32,7 @@ const FEATURES = [
   {
     icon: "👥",
     title: "Peer Validation",
-    desc: "Assign friends as validators. They can only approve or reject after you self-assess — keeping the process fair and honest.",
+    desc: "Assign friends as validators. They can only approve or reject after you self-assess, keeping the process fair and honest.",
     tint: "var(--navy)",
     bgLight: "rgba(26,62,92,0.1)",
     borderLight: "rgba(26,62,92,0.15)",
@@ -68,7 +68,7 @@ const STEPS = [
       { label: "Progress", value: "68%", color: "#8DB15E" },
       { label: "Status", value: "On Track", color: "#1A3E5C" },
     ],
-    mockupDetail: "Your validators can only approve or reject after you self-assess — keeping the process fair and honest.",
+    mockupDetail: "Your validators can only approve or reject after you self-assess, keeping the process fair and honest.",
   },
   {
     num: "04", title: "Win or Learn", tint: "var(--navy)",
@@ -98,7 +98,7 @@ function HowItWorks() {
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div className="h2">How it works</div>
         <p className="p" style={{ marginTop: 8, maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
-          Four simple steps to transform your resolutions into results.
+          Four simple steps to achieve your goals.
         </p>
       </div>
 
@@ -267,8 +267,8 @@ export default function HomePage() {
                 </span>
               </h1>
               <p className="p" style={{ marginTop: 18, fontSize: 16, maxWidth: 440, lineHeight: 1.7 }}>
-                Create commitments, stake real money, track progress with Focus Timer,
-                and get AI-powered coaching to finally achieve your goals.
+                Set your resolutions, stake real money, track progress with Focus Timer,
+                and get AI coaching to finally achieve your goals.
               </p>
               <div style={{ display: "flex", gap: 10, marginTop: 28, flexWrap: "wrap" }}>
                 <Link className="neo-btn" style={{ padding: "12px 24px", fontSize: 15 }} href="/auth/register">
@@ -354,9 +354,9 @@ export default function HomePage() {
         {/* ─── Features with icons ─── */}
         <section style={{ padding: "32px 0" }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div className="h2">Everything you need to stay accountable</div>
+            <div className="h2">Everything you need to achieve your goals</div>
             <p className="p" style={{ marginTop: 8, maxWidth: 460, marginLeft: "auto", marginRight: "auto" }}>
-              Four integrated tools that work together to keep you on track.
+              Four integrated tools that work together to make your resolutions stick.
             </p>
           </div>
           <div className="grid cols-2" style={{ gap: 14 }}>
@@ -391,16 +391,16 @@ export default function HomePage() {
             <div className="grid cols-2" style={{ gap: 28, alignItems: "center" }}>
               <div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 999, background: "rgba(141,177,94,0.12)", fontSize: 11, fontWeight: 600 }}>
-                  Powered by Gemini AI
+                  AI-Powered Coaching
                 </div>
-                <div className="h2" style={{ marginTop: 14, fontSize: 22 }}>Your personal AI productivity coach</div>
+                <div className="h2" style={{ marginTop: 14, fontSize: 22 }}>Your personal AI coach for your goals</div>
                 <p className="p" style={{ marginTop: 10, lineHeight: 1.7 }}>
-                  The AI Advisor knows your active tasks, streak, focus minutes, and commitment status.
+                  The AI Advisor knows your active tasks, streak, focus minutes, and resolution status.
                   It gives personalized advice, plans your week, diagnoses productivity issues, and adapts
-                  strategies based on your real data — not generic tips.
+                  strategies based on your real data, not generic tips.
                 </p>
                 <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
-                  {["Context-aware", "Streaming responses", "Opik-monitored", "Always learning"].map((t) => (
+                  {["Context-aware", "Streaming responses", "Personalized", "Always learning"].map((t) => (
                     <span key={t} style={{ padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(0,0,0,0.04)" }}>{t}</span>
                   ))}
                 </div>
@@ -425,23 +425,23 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ─── Observability Section ─── */}
+        {/* ─── Trust Section ─── */}
         <section style={{ padding: "32px 0" }}>
           <div className="grid cols-2" style={{ gap: 14 }}>
             <div className="neo-surface" style={{ padding: "22px 20px" }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>📊</div>
-              <div className="h3">AI Quality Monitoring</div>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>🎯</div>
+              <div className="h3">Built for Real Goals</div>
               <p className="p" style={{ marginTop: 8, lineHeight: 1.6 }}>
-                Every AI response is traced with Opik — tracking helpfulness, relevance, and safety scores.
-                Online evaluation rules automatically score all production traces for hallucinations and answer quality.
+                Whether it is fitness, learning, productivity, or personal growth,
+                OKMindful helps you turn any resolution into a structured plan with real accountability.
               </p>
             </div>
             <div className="neo-surface" style={{ padding: "22px 20px" }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>🔒</div>
-              <div className="h3">Privacy & Transparency</div>
+              <div className="h3">Safe and Transparent</div>
               <p className="p" style={{ marginTop: 8, lineHeight: 1.6 }}>
-                Your data stays in your Supabase account. Stakes are simulated for accountability — no real money transfers.
-                All AI interactions are observable and auditable through the Opik dashboard.
+                Your data stays in your account. Stakes are simulated for accountability, no real money transfers.
+                All progress is tracked transparently so you and your validators can see the full picture.
               </p>
             </div>
           </div>
@@ -449,9 +449,9 @@ export default function HomePage() {
 
         {/* ─── Final CTA ─── */}
         <section style={{ padding: "40px 0 56px", textAlign: "center" }}>
-          <div className="h2">Ready to commit?</div>
+          <div className="h2">Ready to achieve your goals?</div>
           <p className="p" style={{ marginTop: 10, maxWidth: 420, marginLeft: "auto", marginRight: "auto", fontSize: 15, lineHeight: 1.7 }}>
-            Join OKMindful and start building real accountability for your 2026 resolutions.
+            Join OKMindful and finally make your resolutions stick.
             It&apos;s free to get started.
           </p>
           <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "center", flexWrap: "wrap" }}>
@@ -467,11 +467,10 @@ export default function HomePage() {
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Image src="/logo.webp" alt="OKMindful" width={20} height={20} style={{ borderRadius: 5 }} />
-            <span className="p" style={{ fontSize: 12 }}>OKMindful &copy; 2026</span>
+            <span className="p" style={{ fontSize: 12 }}>OKMindful &copy; {new Date().getFullYear()}</span>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
             <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.03)" }}>Open Source</span>
-            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-soft)", padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.03)" }}>Built with Opik</span>
           </div>
         </div>
       </footer>

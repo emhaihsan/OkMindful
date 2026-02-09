@@ -8,6 +8,47 @@ import { useStore } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
 import { createClient } from "../lib/supabase";
 
+/* ─── Confirmation Modal ─── */
+function ConfirmModal({ title, message, confirmLabel, confirmColor, onConfirm, onCancel }: {
+  title: string; message: string; confirmLabel: string; confirmColor: string;
+  onConfirm: () => void; onCancel: () => void;
+}) {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }} onClick={onCancel}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="animate-fade-in"
+        style={{
+          background: "#fff", borderRadius: 20, padding: "28px 24px", maxWidth: 400, width: "90%",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.12)", border: "1.5px solid rgba(0,0,0,0.06)",
+        }}
+      >
+        <div className="h3" style={{ fontSize: 16 }}>{title}</div>
+        <p className="p" style={{ marginTop: 10, lineHeight: 1.6 }}>{message}</p>
+        <div style={{ display: "flex", gap: 8, marginTop: 20, justifyContent: "flex-end" }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: "8px 18px", fontSize: 13, fontWeight: 600, borderRadius: 10,
+              border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
+              cursor: "pointer", color: "var(--ink-soft)",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            className="neo-btn"
+            onClick={onConfirm}
+            style={{ background: confirmColor, padding: "8px 18px", fontSize: 13 }}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const CHARITIES = [
   { value: "WHO", label: "World Health Organization (WHO)" },
   { value: "UNICEF", label: "UNICEF" },
@@ -54,6 +95,20 @@ export default function CommitmentsPage() {
   const [checkinFreq, setCheckinFreq] = useState<"daily" | "weekly" | "end">("daily");
   const [formError, setFormError] = useState("");
   const [creating, setCreating] = useState(false);
+
+  // Confirmation popup state
+  const [confirm, setConfirm] = useState<{
+    title: string; message: string; confirmLabel: string; confirmColor: string; action: () => void;
+  } | null>(null);
+
+  function askConfirm(title: string, message: string, confirmLabel: string, confirmColor: string, action: () => void) {
+    setConfirm({ title, message, confirmLabel, confirmColor, action });
+  }
+
+  function executeConfirm() {
+    if (confirm) confirm.action();
+    setConfirm(null);
+  }
 
   function getEffectiveDuration(): number {
     if (durationType === "date" && deadlineDate) {
@@ -125,7 +180,7 @@ export default function CommitmentsPage() {
           <div>
             <h1 className="h2">Commitments</h1>
             <p className="p" style={{ marginTop: 6 }}>
-              Set goals, put money on the line, and let your friends hold you accountable.
+              Set your resolutions, put money on the line, and let your friends hold you accountable.
             </p>
           </div>
           <button className="neo-btn" style={{ background: "var(--yellow)" }} onClick={() => setShowForm(!showForm)}>
@@ -190,7 +245,7 @@ export default function CommitmentsPage() {
                     <div className="neo-surface-flat" style={{ padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span className="p" style={{ fontSize: 13, fontWeight: 600 }}>Your balance: ${balance ?? "..."}</span>
                       {balance !== null && getEffectiveStake() > balance && (
-                        <span className="p" style={{ fontSize: 12, color: "var(--pink)", fontWeight: 600 }}>Insufficient — top up on Profile page</span>
+                        <span className="p" style={{ fontSize: 12, color: "var(--pink)", fontWeight: 600 }}>Insufficient. Top up on Profile page</span>
                       )}
                     </div>
                   </div>
@@ -345,16 +400,16 @@ export default function CommitmentsPage() {
 
                 {c.status === "active" && (
                   <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-                    <button className="neo-btn" style={{ background: checkedToday ? "var(--teal)" : "var(--yellow)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.checkinCommitment(c.id)} disabled={checkedToday}>
+                    <button className="neo-btn" style={{ background: checkedToday ? "var(--teal)" : "var(--yellow)", padding: "7px 14px", fontSize: 13 }} onClick={() => askConfirm("Check In", `Mark today's check-in for "${c.title}"? This cannot be undone.`, "Check In", "var(--yellow)", () => store.checkinCommitment(c.id))} disabled={checkedToday}>
                       {checkedToday ? "Checked in today" : "Check in today"}
                     </button>
                     {c.validators.length > 0 && !c.selfAssigned && (
-                      <button className="neo-btn" style={{ background: "var(--lime)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.selfAssignCommitment(c.id)}>
+                      <button className="neo-btn" style={{ background: "var(--lime)", padding: "7px 14px", fontSize: 13 }} onClick={() => askConfirm("Self-Assess Complete", `Confirm that you have completed "${c.title}"? Your validators will then be able to review. This cannot be undone.`, "Confirm", "var(--lime)", () => store.selfAssignCommitment(c.id))}>
                         Self-Assess Complete
                       </button>
                     )}
                     <button
-                      onClick={() => store.deleteCommitment(c.id)}
+                      onClick={() => askConfirm("Delete Commitment", `Are you sure you want to delete "${c.title}"? This cannot be undone.${c.mode === "stake" ? " Your staked amount will not be refunded." : ""}`, "Delete", "var(--pink)", () => store.deleteCommitment(c.id))}
                       style={{
                         padding: "7px 12px", fontSize: 12, fontWeight: 600, borderRadius: 10,
                         border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
@@ -420,10 +475,10 @@ export default function CommitmentsPage() {
 
                 {c.status === "active" && myVS === "pending" && c.selfAssigned && (
                   <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-                    <button className="neo-btn" style={{ background: "var(--teal)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.validateCommitment(c.id, store.currentUser, true)}>
+                    <button className="neo-btn" style={{ background: "var(--teal)", padding: "7px 14px", fontSize: 13 }} onClick={() => askConfirm("Approve Commitment", `Approve "${c.title}" by ${c.owner}? This means you confirm they completed their goal. This cannot be undone.`, "Approve", "var(--teal)", () => store.validateCommitment(c.id, store.currentUser, true))}>
                       Approve
                     </button>
-                    <button className="neo-btn" style={{ background: "var(--pink)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.validateCommitment(c.id, store.currentUser, false)}>
+                    <button className="neo-btn" style={{ background: "var(--pink)", padding: "7px 14px", fontSize: 13 }} onClick={() => askConfirm("Reject Commitment", `Reject "${c.title}" by ${c.owner}? This means you believe they did not complete their goal.${c.mode === "stake" ? " Their staked amount will be forfeited." : ""} This cannot be undone.`, "Reject", "var(--pink)", () => store.validateCommitment(c.id, store.currentUser, false))}>
                       Reject
                     </button>
                   </div>
@@ -458,12 +513,22 @@ export default function CommitmentsPage() {
         <div style={{ marginTop: 28, padding: "14px 18px", borderRadius: 16, background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.05)" }}>
           <div className="p" style={{ fontSize: 12, lineHeight: 1.7 }}>
             <b>Disclaimer:</b> OKMindful uses a demo balance system for accountability purposes.
-            Stakes are simulated — no real money is transferred. Fund destinations are recorded
-            as declared intent only. This platform is designed to build personal accountability
-            habits and is not a financial or gambling service.
+            Stakes are simulated, no real money is transferred. Fund destinations are recorded
+            as declared intent only. This platform is designed to help you achieve your goals
+            and is not a financial or gambling service.
           </div>
         </div>
       </div>
+      {confirm && (
+        <ConfirmModal
+          title={confirm.title}
+          message={confirm.message}
+          confirmLabel={confirm.confirmLabel}
+          confirmColor={confirm.confirmColor}
+          onConfirm={executeConfirm}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
     </AppShell>
   );
 }

@@ -5,7 +5,7 @@ import { trackGemini } from "opik-gemini";
 import { getOpikClient } from "../../lib/opik";
 import type { Trace } from "../../lib/opik";
 
-const DEFAULT_SYSTEM_PROMPT = `You are a Productivity Advisor AI for OKMindful, a commitment & accountability app for 2026 New Year's resolutions.
+const DEFAULT_SYSTEM_PROMPT = `You are a Productivity Advisor AI for OKMindful, a commitment & accountability app for New Year's resolutions.
 
 Your role:
 - Help users plan goals and break them into actionable steps

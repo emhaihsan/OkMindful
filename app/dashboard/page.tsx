@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { AppShell } from "../ui/AppShell";
 import { Card } from "../ui/Card";
@@ -7,10 +8,63 @@ import { Stat } from "../ui/Stat";
 import { useStore } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
 
+function ConfirmModal({ title, message, confirmLabel, confirmColor, onConfirm, onCancel }: {
+  title: string; message: string; confirmLabel: string; confirmColor: string;
+  onConfirm: () => void; onCancel: () => void;
+}) {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)" }} onClick={onCancel}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="animate-fade-in"
+        style={{
+          background: "#fff", borderRadius: 20, padding: "28px 24px", maxWidth: 400, width: "90%",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.12)", border: "1.5px solid rgba(0,0,0,0.06)",
+        }}
+      >
+        <div className="h3" style={{ fontSize: 16 }}>{title}</div>
+        <p className="p" style={{ marginTop: 10, lineHeight: 1.6 }}>{message}</p>
+        <div style={{ display: "flex", gap: 8, marginTop: 20, justifyContent: "flex-end" }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: "8px 18px", fontSize: 13, fontWeight: 600, borderRadius: 10,
+              border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent",
+              cursor: "pointer", color: "var(--ink-soft)",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            className="neo-btn"
+            onClick={onConfirm}
+            style={{ background: confirmColor, padding: "8px 18px", fontSize: 13 }}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const store = useStore();
   const { profile } = useAuth();
   const { tasks, sessions } = store;
+
+  const [confirm, setConfirm] = useState<{
+    title: string; message: string; confirmLabel: string; confirmColor: string; action: () => void;
+  } | null>(null);
+
+  function askConfirm(title: string, message: string, confirmLabel: string, confirmColor: string, action: () => void) {
+    setConfirm({ title, message, confirmLabel, confirmColor, action });
+  }
+
+  function executeConfirm() {
+    if (confirm) confirm.action();
+    setConfirm(null);
+  }
 
   const mine = store.myCommitments();
   const validating = store.validatingCommitments();
@@ -39,8 +93,8 @@ export default function DashboardPage() {
           <h1 className="h2">{greeting}, {profile?.username || "there"}</h1>
           <p className="p" style={{ marginTop: 6, fontSize: 15 }}>
             {activeCommitments.length > 0
-              ? `You have ${activeCommitments.length} active commitment${activeCommitments.length > 1 ? "s" : ""}${uncheckedToday.length > 0 ? ` — ${uncheckedToday.length} still need today's check-in` : " — all checked in today"}.`
-              : "No active commitments yet. Start one to build accountability."
+              ? `You have ${activeCommitments.length} active commitment${activeCommitments.length > 1 ? "s" : ""}. ${uncheckedToday.length > 0 ? `${uncheckedToday.length} still need today's check-in.` : "All checked in today!"}`
+              : "No active commitments yet. Start one to achieve your goals!"
             }
             {todayMin > 0 && ` ${todayMin} minutes focused today.`}
           </p>
@@ -96,7 +150,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="p" style={{ marginTop: 6, fontSize: 12 }}>{totalCheckins}/{c.durationDays} days ({progress}%)</div>
                         {!checkedToday && (
-                          <button className="neo-btn" style={{ marginTop: 10, background: "var(--yellow)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.checkinCommitment(c.id)}>
+                          <button className="neo-btn" style={{ marginTop: 10, background: "var(--yellow)", padding: "7px 14px", fontSize: 13 }} onClick={() => askConfirm("Check In", `Mark today's check-in for "${c.title}"? This cannot be undone.`, "Check In", "var(--yellow)", () => store.checkinCommitment(c.id))}>
                             Check in today
                           </button>
                         )}
@@ -123,8 +177,8 @@ export default function DashboardPage() {
                           </div>
                           {myVS === "pending" ? (
                             <div style={{ display: "flex", gap: 6 }}>
-                              <button className="neo-btn" style={{ padding: "5px 10px", fontSize: 12, background: "var(--teal)" }} onClick={() => store.validateCommitment(c.id, store.currentUser, true)}>Approve</button>
-                              <button className="neo-btn" style={{ padding: "5px 10px", fontSize: 12, background: "var(--pink)" }} onClick={() => store.validateCommitment(c.id, store.currentUser, false)}>Reject</button>
+                              <button className="neo-btn" style={{ padding: "5px 10px", fontSize: 12, background: "var(--teal)" }} onClick={() => askConfirm("Approve Commitment", `Approve "${c.title}" by ${c.owner}? This means you confirm they completed their goal. This cannot be undone.`, "Approve", "var(--teal)", () => store.validateCommitment(c.id, store.currentUser, true))}>Approve</button>
+                              <button className="neo-btn" style={{ padding: "5px 10px", fontSize: 12, background: "var(--pink)" }} onClick={() => askConfirm("Reject Commitment", `Reject "${c.title}" by ${c.owner}? This means you believe they did not complete their goal.${c.mode === "stake" ? " Their staked amount will be forfeited." : ""} This cannot be undone.`, "Reject", "var(--pink)", () => store.validateCommitment(c.id, store.currentUser, false))}>Reject</button>
                             </div>
                           ) : (
                             <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: myVS === "approved" ? "rgba(141,177,94,0.15)" : "rgba(232,114,154,0.15)" }}>{myVS}</span>
@@ -181,6 +235,16 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      {confirm && (
+        <ConfirmModal
+          title={confirm.title}
+          message={confirm.message}
+          confirmLabel={confirm.confirmLabel}
+          confirmColor={confirm.confirmColor}
+          onConfirm={executeConfirm}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
     </AppShell>
   );
 }

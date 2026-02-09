@@ -79,7 +79,7 @@ export default function RegisterPage() {
                   autoComplete="username"
                 />
                 <div className="p" style={{ marginTop: 4, fontSize: 12 }}>
-                  Unique username — others will use this to assign you as a validator.
+                  Unique username. Others will use this to assign you as a validator.
                 </div>
               </div>
               <div>
