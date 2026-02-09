@@ -51,6 +51,7 @@ export default function CommitmentsPage() {
   const [deadlineDate, setDeadlineDate] = useState("");
   const [fundDestination, setFundDestination] = useState("WHO");
   const [validators, setValidators] = useState("");
+  const [checkinFreq, setCheckinFreq] = useState<"daily" | "weekly" | "end">("daily");
   const [formError, setFormError] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -100,7 +101,7 @@ export default function CommitmentsPage() {
       });
       setTitle(""); setDesc(""); setMode("commit"); setStakeAmount(50);
       setCustomStake(""); setDuration(30); setCustomDuration("");
-      setDeadlineDate(""); setFundDestination("WHO"); setValidators("");
+      setDeadlineDate(""); setFundDestination("WHO"); setValidators(""); setCheckinFreq("daily");
       // Refresh balance after stake deduction
       if (mode === "stake") loadBalance();
       setDurationType("preset"); setShowForm(false);
@@ -221,20 +222,35 @@ export default function CommitmentsPage() {
                   )}
                 </div>
 
+                {/* Check-in Frequency */}
+                <div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>Check-in style:</span>
+                    {(["daily", "weekly", "end"] as const).map((f) => (
+                      <button key={f} className="neo-btn" onClick={() => setCheckinFreq(f)} style={{ padding: "6px 12px", fontSize: 13, background: checkinFreq === f ? "var(--lime)" : "transparent", border: checkinFreq === f ? undefined : "1.5px solid rgba(0,0,0,0.08)" }}>
+                        {f === "daily" ? "Daily" : f === "weekly" ? "Weekly" : "End of Period"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="p" style={{ marginTop: 4, fontSize: 12 }}>
+                    {checkinFreq === "daily" ? "Check in every day to maintain your streak." : checkinFreq === "weekly" ? "Check in once per week to report progress." : "Self-assess at the end of the commitment period."}
+                  </div>
+                </div>
+
                 {/* Validators */}
                 <div>
                   <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                     <span className="p" style={{ fontWeight: 700, fontSize: 13 }}>Validators{mode === "stake" ? " (required)" : " (optional)"}:</span>
-                    {mode === "stake" && <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(244,114,182,0.12)" }}>Required for stake</span>}
+                    {mode === "stake" && <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(232,114,154,0.12)" }}>Required for stake</span>}
                   </div>
                   <input value={validators} onChange={(e) => setValidators(e.target.value)} placeholder="Enter usernames or emails: alice, bob@email.com" className="neo-input" style={{ marginTop: 6 }} />
                   <div className="p" style={{ marginTop: 4, fontSize: 12 }}>
-                    Separate multiple validators with commas. You can use their username or email address.
+                    Validators can only approve/reject after you self-assess your commitment.
                   </div>
                 </div>
 
                 {formError && (
-                  <div style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(244,114,182,0.12)", border: "1.5px solid rgba(244,114,182,0.2)" }}>
+                  <div style={{ padding: "10px 12px", borderRadius: 12, background: "rgba(232,114,154,0.12)", border: "1.5px solid rgba(232,114,154,0.2)" }}>
                     <div className="p" style={{ fontWeight: 600, color: "var(--ink)", fontSize: 13 }}>{formError}</div>
                   </div>
                 )}
@@ -289,15 +305,21 @@ export default function CommitmentsPage() {
                       {c.mode === "stake" && ` · $${c.stakeAmount}`}
                       {c.deadlineDate && ` · Due ${c.deadlineDate}`}
                     </div>
+                    <div style={{ display: "flex", gap: 4, marginTop: 6, flexWrap: "wrap" }}>
+                      <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(141,177,94,0.15)" }}>
+                        {c.checkinFrequency === "weekly" ? "Weekly check-in" : c.checkinFrequency === "end" ? "End-of-period review" : "Daily check-in"}
+                      </span>
+                      {c.selfAssigned && <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(141,177,94,0.15)" }}>Self-assessed</span>}
+                    </div>
                     {c.fundDestination && (
                       <div className="p" style={{ marginTop: 4, fontSize: 12 }}>
-                        If failed → {c.fundDestination}
+                        If failed &rarr; {c.fundDestination}
                       </div>
                     )}
                   </div>
                   <span style={{
-                    padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
-                    background: c.status === "active" ? "rgba(96,165,250,0.12)" : c.status === "completed" ? "rgba(45,212,191,0.15)" : "rgba(244,114,182,0.12)",
+                    padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, height: "fit-content",
+                    background: c.status === "active" ? "rgba(26,62,92,0.1)" : c.status === "completed" ? "rgba(141,177,94,0.15)" : "rgba(232,114,154,0.12)",
                   }}>
                     {c.status}
                   </span>
@@ -307,9 +329,12 @@ export default function CommitmentsPage() {
                   <div style={{ display: "flex", gap: 4, marginTop: 10, flexWrap: "wrap" }}>
                     {c.validators.map((v) => {
                       const vs = c.validationStatus?.[v.toLowerCase()] || "pending";
-                      const bg = vs === "approved" ? "rgba(45,212,191,0.15)" : vs === "rejected" ? "rgba(244,114,182,0.15)" : "rgba(0,0,0,0.04)";
+                      const bg = vs === "approved" ? "rgba(141,177,94,0.15)" : vs === "rejected" ? "rgba(232,114,154,0.15)" : "rgba(0,0,0,0.04)";
                       return <span key={v} style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: bg }}>{v}: {vs}</span>;
                     })}
+                    {!c.selfAssigned && c.validators.length > 0 && (
+                      <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 500, background: "rgba(246,177,50,0.12)", color: "var(--ink-soft)" }}>Awaiting your self-assessment</span>
+                    )}
                   </div>
                 )}
 
@@ -323,6 +348,11 @@ export default function CommitmentsPage() {
                     <button className="neo-btn" style={{ background: checkedToday ? "var(--teal)" : "var(--yellow)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.checkinCommitment(c.id)} disabled={checkedToday}>
                       {checkedToday ? "Checked in today" : "Check in today"}
                     </button>
+                    {c.validators.length > 0 && !c.selfAssigned && (
+                      <button className="neo-btn" style={{ background: "var(--lime)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.selfAssignCommitment(c.id)}>
+                        Self-Assess Complete
+                      </button>
+                    )}
                     <button
                       onClick={() => store.deleteCommitment(c.id)}
                       style={{
@@ -369,7 +399,7 @@ export default function CommitmentsPage() {
                   </div>
                   <span style={{
                     padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
-                    background: c.status === "active" ? "rgba(96,165,250,0.12)" : c.status === "completed" ? "rgba(45,212,191,0.15)" : "rgba(244,114,182,0.12)",
+                    background: c.status === "active" ? "rgba(26,62,92,0.1)" : c.status === "completed" ? "rgba(141,177,94,0.15)" : "rgba(232,114,154,0.12)",
                   }}>
                     {c.status}
                   </span>
@@ -378,7 +408,7 @@ export default function CommitmentsPage() {
                 <div style={{ display: "flex", gap: 4, marginTop: 10, flexWrap: "wrap" }}>
                   {c.validators.map((v) => {
                     const vs = c.validationStatus?.[v.toLowerCase()] || "pending";
-                    const bg = vs === "approved" ? "rgba(45,212,191,0.15)" : vs === "rejected" ? "rgba(244,114,182,0.15)" : "rgba(0,0,0,0.04)";
+                    const bg = vs === "approved" ? "rgba(141,177,94,0.15)" : vs === "rejected" ? "rgba(232,114,154,0.15)" : "rgba(0,0,0,0.04)";
                     return <span key={v} style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: bg }}>{v}: {vs} {v.toLowerCase() === store.currentUser ? "(you)" : ""}</span>;
                   })}
                 </div>
@@ -388,7 +418,7 @@ export default function CommitmentsPage() {
                 </div>
                 <div className="p" style={{ marginTop: 6, fontSize: 12 }}>{totalCheckins}/{c.durationDays} days checked in</div>
 
-                {c.status === "active" && myVS === "pending" && (
+                {c.status === "active" && myVS === "pending" && c.selfAssigned && (
                   <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
                     <button className="neo-btn" style={{ background: "var(--teal)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.validateCommitment(c.id, store.currentUser, true)}>
                       Approve
@@ -396,6 +426,13 @@ export default function CommitmentsPage() {
                     <button className="neo-btn" style={{ background: "var(--pink)", padding: "7px 14px", fontSize: 13 }} onClick={() => store.validateCommitment(c.id, store.currentUser, false)}>
                       Reject
                     </button>
+                  </div>
+                )}
+                {c.status === "active" && myVS === "pending" && !c.selfAssigned && (
+                  <div className="neo-surface-flat" style={{ padding: "10px 14px", marginTop: 12 }}>
+                    <div className="p" style={{ fontSize: 12, fontWeight: 600 }}>
+                      Waiting for {c.owner} to self-assess before you can validate.
+                    </div>
                   </div>
                 )}
                 {myVS !== "pending" && (

@@ -89,20 +89,22 @@ export default function PomodoroPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [justFinished, setJustFinished] = useState<"focus" | "break" | null>(null);
+  const [notification, setNotification] = useState<{ type: "focus" | "break" | "target"; message: string } | null>(null);
+
   useEffect(() => {
     if (!running) return;
     const t = setInterval(() => {
       setSeconds((v) => {
         if (v <= 1) {
           if (modeRef.current === "focus") {
-            const tid = taskIdRef.current;
-            const task = tid ? store.taskById(tid) : undefined;
-            store.logSession(tid || "untitled", task?.title || "Free session", focusRef.current, true);
+            setJustFinished("focus");
             setCompletedCount((c) => c + 1);
             setMode("break");
             setRunning(false);
             return 5 * 60;
           }
+          setJustFinished("break");
           setMode("focus");
           setRunning(false);
           return focusRef.current * 60;
@@ -111,7 +113,28 @@ export default function PomodoroPage() {
       });
     }, 1000);
     return () => clearInterval(t);
-  }, [running, store]);
+  }, [running]);
+
+  // Handle session logging + notification after timer finishes (deferred to avoid setState during render)
+  useEffect(() => {
+    if (!justFinished) return;
+    if (justFinished === "focus") {
+      const tid = taskIdRef.current;
+      const task = tid ? store.taskById(tid) : undefined;
+      store.logSession(tid || "untitled", task?.title || "Free session", focusRef.current, true);
+      // Check if task target is now met
+      if (task && task.completedSessions + 1 >= task.targetSessions) {
+        setNotification({ type: "target", message: `"${task.title}" target reached! ${task.targetSessions} sessions complete. You can keep going or pick a new task.` });
+      } else {
+        setNotification({ type: "focus", message: `Focus session complete! ${focusRef.current}m logged. Time for a break.` });
+      }
+      // Play a sound / vibrate if available
+      try { navigator.vibrate?.(200); } catch { /* ok */ }
+    } else {
+      setNotification({ type: "break", message: "Break is over! Ready for another focus session?" });
+    }
+    setJustFinished(null);
+  }, [justFinished, store]);
 
   function reset() { setRunning(false); setSeconds(mode === "focus" ? focusMinutes * 60 : 5 * 60); }
   function switchMode(next: "focus" | "break") { setMode(next); setRunning(false); setSeconds(next === "focus" ? focusMinutes * 60 : 5 * 60); }
@@ -137,6 +160,30 @@ export default function PomodoroPage() {
 
   return (
     <AppShell active="pomodoro">
+      {/* ─── Session Complete Notification ─── */}
+      {notification && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, display: "grid", placeItems: "center", background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }} onClick={() => setNotification(null)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", borderRadius: 24, padding: "32px 28px", maxWidth: 400, width: "90%", textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,0.15)", border: "1.5px solid rgba(255,255,255,0.5)" }} className="animate-slide-up">
+            <div style={{ fontSize: 48, marginBottom: 12 }}>
+              {notification.type === "target" ? "🎉" : notification.type === "focus" ? "✅" : "☕"}
+            </div>
+            <div className="h2" style={{ fontSize: 20 }}>
+              {notification.type === "target" ? "Target Reached!" : notification.type === "focus" ? "Session Complete!" : "Break Over!"}
+            </div>
+            <div className="p" style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6 }}>{notification.message}</div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 20 }}>
+              {notification.type === "target" && (
+                <button className="neo-btn" style={{ background: "var(--teal)", padding: "10px 20px" }} onClick={() => { setNotification(null); setSelectedTaskId(""); }}>Pick New Task</button>
+              )}
+              <button className="neo-btn" style={{ background: notification.type === "target" ? "var(--yellow)" : "var(--teal)", padding: "10px 20px" }} onClick={() => { setNotification(null); if (!running) setRunning(true); }}>
+                {notification.type === "break" ? "Start Focus" : "Continue"}
+              </button>
+              <button className="neo-btn secondary" style={{ padding: "10px 16px" }} onClick={() => setNotification(null)}>Dismiss</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="section-pad">
         <h1 className="h2">Focus Timer</h1>
         <p className="p" style={{ marginTop: 6 }}>Timer persists when you navigate away. Use short durations (1-2m) for quick demos.</p>
@@ -165,14 +212,14 @@ export default function PomodoroPage() {
               ) : (
                 <div className="grid" style={{ gap: 8 }}>
                   {tasks.map((t) => (
-                    <div key={t.id} className="neo-surface-flat" style={{ padding: 12, cursor: "pointer", border: selectedTaskId === t.id ? "1.5px solid rgba(163,230,53,0.4)" : undefined, background: selectedTaskId === t.id ? "rgba(163,230,53,0.1)" : undefined, transition: "all 0.2s ease" }} onClick={() => setSelectedTaskId(t.id)}>
+                    <div key={t.id} className="neo-surface-flat" style={{ padding: 12, cursor: "pointer", border: selectedTaskId === t.id ? "1.5px solid rgba(141,177,94,0.4)" : undefined, background: selectedTaskId === t.id ? "rgba(141,177,94,0.1)" : undefined, transition: "all 0.2s ease" }} onClick={() => setSelectedTaskId(t.id)}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                         <div>
                           <div className="h3">{t.title}</div>
                           <div className="p" style={{ fontSize: 12 }}>{t.completedSessions}/{t.targetSessions} sessions</div>
                         </div>
                         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                          {t.completedSessions >= t.targetSessions && <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(45,212,191,0.15)" }}>Done</span>}
+                          {t.completedSessions >= t.targetSessions && <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(141,177,94,0.15)" }}>Done</span>}
                           <button onClick={(e) => { e.stopPropagation(); store.deleteTask(t.id); }} style={{ padding: "4px 8px", fontSize: 12, borderRadius: 8, border: "1.5px solid rgba(0,0,0,0.08)", background: "transparent", cursor: "pointer", color: "var(--ink-soft)" }}>×</button>
                         </div>
                       </div>
@@ -187,7 +234,7 @@ export default function PomodoroPage() {
           {/* RIGHT */}
           <div className="grid" style={{ gap: 16 }}>
             <Card title="Timer" accent="var(--pink)">
-              {selectedTask && <div style={{ marginBottom: 12, padding: "4px 12px", borderRadius: 999, display: "inline-flex", fontSize: 12, fontWeight: 600, background: "rgba(163,230,53,0.12)" }}>{selectedTask.title} ({selectedTask.completedSessions}/{selectedTask.targetSessions})</div>}
+              {selectedTask && <div style={{ marginBottom: 12, padding: "4px 12px", borderRadius: 999, display: "inline-flex", fontSize: 12, fontWeight: 600, background: "rgba(141,177,94,0.12)" }}>{selectedTask.title} ({selectedTask.completedSessions}/{selectedTask.targetSessions})</div>}
               {!selectedTask && tasks.length > 0 && <div className="p" style={{ marginBottom: 12, fontWeight: 600 }}>Select a task on the left to begin</div>}
 
               <div className="neo-surface-flat" style={{ padding: 20 }}>

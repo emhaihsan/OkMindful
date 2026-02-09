@@ -206,10 +206,10 @@ export default function ChatPage() {
                 width: "100%",
                 padding: "10px 14px",
                 borderRadius: 12,
-                border: (!activeConvo && displayMessages.length === 0) ? "1.5px solid rgba(96,165,250,0.5)" : "1.5px solid rgba(96,165,250,0.3)",
+                border: (!activeConvo && displayMessages.length === 0) ? "1.5px solid rgba(26,62,92,0.4)" : "1.5px solid rgba(26,62,92,0.2)",
                 background: (!activeConvo && displayMessages.length === 0)
-                  ? "linear-gradient(135deg, rgba(96,165,250,0.2), rgba(45,212,191,0.15))"
-                  : "linear-gradient(135deg, rgba(96,165,250,0.1), rgba(45,212,191,0.08))",
+                  ? "linear-gradient(135deg, rgba(26,62,92,0.15), rgba(141,177,94,0.12))"
+                  : "linear-gradient(135deg, rgba(26,62,92,0.08), rgba(141,177,94,0.06))",
                 cursor: "pointer",
                 fontWeight: 700,
                 fontSize: 13,
@@ -237,8 +237,8 @@ export default function ChatPage() {
                       style={{
                         padding: "10px 12px",
                         borderRadius: 12,
-                        border: isActive ? "1.5px solid rgba(96,165,250,0.25)" : "1.5px solid transparent",
-                        background: isActive ? "rgba(96,165,250,0.08)" : "transparent",
+                        border: isActive ? "1.5px solid rgba(26,62,92,0.25)" : "1.5px solid transparent",
+                        background: isActive ? "rgba(26,62,92,0.08)" : "transparent",
                         cursor: "pointer",
                         textAlign: "left",
                         transition: "all 0.15s ease",
@@ -256,7 +256,7 @@ export default function ChatPage() {
                             onClick={(e) => e.stopPropagation()}
                             style={{
                               flex: 1, fontSize: 13, fontWeight: 600, color: "var(--ink)",
-                              border: "1px solid rgba(96,165,250,0.3)", borderRadius: 6,
+                              border: "1px solid rgba(26,62,92,0.3)", borderRadius: 6,
                               padding: "2px 6px", background: "rgba(255,255,255,0.8)", outline: "none",
                             }}
                           />
@@ -331,7 +331,7 @@ export default function ChatPage() {
                 width: 36, height: 36, borderRadius: 11,
                 background: "linear-gradient(135deg, var(--blue), var(--teal))",
                 display: "grid", placeItems: "center", fontSize: 18,
-                boxShadow: "0 2px 8px rgba(96,165,250,0.2)",
+                boxShadow: "0 2px 8px rgba(26,62,92,0.2)",
               }}
             >
               🤖
@@ -344,7 +344,7 @@ export default function ChatPage() {
             </div>
             <span style={{
               padding: "4px 12px", borderRadius: 999, fontSize: 11, fontWeight: 600,
-              background: loading ? "rgba(251,146,60,0.15)" : "rgba(45,212,191,0.15)",
+              background: loading ? "rgba(232,148,58,0.15)" : "rgba(141,177,94,0.15)",
             }}>
               {loading ? "Thinking..." : "Online"}
             </span>
@@ -370,7 +370,7 @@ export default function ChatPage() {
                           padding: "8px 16px",
                           borderRadius: 12,
                           border: "1.5px solid rgba(0,0,0,0.06)",
-                          background: "rgba(96,165,250,0.06)",
+                          background: "rgba(26,62,92,0.06)",
                           cursor: "pointer",
                           fontSize: 13,
                           fontWeight: 600,
@@ -391,7 +391,7 @@ export default function ChatPage() {
                   <div key={m.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", flexDirection: isUser ? "row-reverse" : "row" }}>
                     <div style={{
                       width: 30, height: 30, borderRadius: 10, flexShrink: 0,
-                      background: isUser ? "rgba(96,165,250,0.15)" : "linear-gradient(135deg, var(--blue), var(--teal))",
+                      background: isUser ? "rgba(26,62,92,0.15)" : "linear-gradient(135deg, var(--blue), var(--teal))",
                       display: "grid", placeItems: "center", fontSize: 14,
                     }}>
                       {isUser ? "👤" : "🤖"}
@@ -399,8 +399,8 @@ export default function ChatPage() {
                     <div style={{
                       padding: "12px 16px",
                       borderRadius: 16,
-                      background: isUser ? "rgba(96,165,250,0.1)" : "rgba(255,255,255,0.6)",
-                      border: `1.5px solid ${isUser ? "rgba(96,165,250,0.15)" : "rgba(0,0,0,0.05)"}`,
+                      background: isUser ? "rgba(26,62,92,0.1)" : "rgba(255,255,255,0.6)",
+                      border: `1.5px solid ${isUser ? "rgba(26,62,92,0.15)" : "rgba(0,0,0,0.05)"}`,
                       maxWidth: "80%",
                     }}>
                       {isUser ? (

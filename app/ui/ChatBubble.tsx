@@ -70,11 +70,11 @@ export function ChatBubble() {
           width: 56,
           height: 56,
           borderRadius: 18,
-          border: "1.5px solid rgba(96,165,250,0.3)",
+          border: "1.5px solid rgba(26,62,92,0.3)",
           background: open
             ? "linear-gradient(135deg, var(--pink), var(--orange))"
             : "linear-gradient(135deg, var(--blue), var(--teal))",
-          boxShadow: "0 4px 20px rgba(96,165,250,0.3), 0 2px 8px rgba(0,0,0,0.1)",
+          boxShadow: "0 4px 20px rgba(26,62,92,0.3), 0 2px 8px rgba(0,0,0,0.1)",
           cursor: "pointer",
           display: "grid",
           placeItems: "center",
@@ -118,7 +118,7 @@ export function ChatBubble() {
               display: "flex",
               alignItems: "center",
               gap: 10,
-              background: "linear-gradient(135deg, rgba(96,165,250,0.08), rgba(45,212,191,0.06))",
+              background: "linear-gradient(135deg, rgba(26,62,92,0.08), rgba(141,177,94,0.06))",
             }}
           >
             <div
@@ -178,7 +178,7 @@ export function ChatBubble() {
                           fontSize: 12,
                           fontWeight: 600,
                           border: "1.5px solid rgba(0,0,0,0.06)",
-                          background: "rgba(96,165,250,0.08)",
+                          background: "rgba(26,62,92,0.08)",
                           cursor: "pointer",
                           transition: "all 0.2s ease",
                         }}
@@ -198,8 +198,8 @@ export function ChatBubble() {
                     style={{
                       padding: "10px 12px",
                       borderRadius: 14,
-                      background: isUser ? "rgba(96,165,250,0.12)" : "rgba(255,255,255,0.7)",
-                      border: `1px solid ${isUser ? "rgba(96,165,250,0.15)" : "rgba(0,0,0,0.04)"}`,
+                      background: isUser ? "rgba(26,62,92,0.12)" : "rgba(255,255,255,0.7)",
+                      border: `1px solid ${isUser ? "rgba(26,62,92,0.15)" : "rgba(0,0,0,0.04)"}`,
                       marginLeft: isUser ? "auto" : 0,
                       maxWidth: "88%",
                     }}

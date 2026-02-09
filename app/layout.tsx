@@ -9,6 +9,10 @@ const geist = Geist({ subsets: ["latin"], weight: ["400", "500", "700", "800"] }
 export const metadata: Metadata = {
   title: "OKMindful — Next-Level Commitments",
   description: "Commit, stake, and crush your 2026 resolutions with AI-powered accountability.",
+  icons: {
+    icon: "/logo.ico",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

@@ -14,7 +14,7 @@ Your role:
 - Review progress and suggest improvements
 - Provide motivational support without being preachy
 
-Be concise, practical, and actionable. Use bullet points when listing steps. Keep responses under 200 words unless the user asks for detail. Always respond in the same language the user writes in.`;
+Be practical and actionable. Use bullet points when listing steps. Give thorough, helpful responses — don't cut yourself short. Always respond in the same language the user writes in.`;
 
 function loadSystemPrompt(): { prompt: string; version: string } {
   const optimizedPaths = [
@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       config: {
         systemInstruction: systemPrompt,
         temperature: 0.7,
-        maxOutputTokens: 512,
+        maxOutputTokens: 4096,
       },
     });
 

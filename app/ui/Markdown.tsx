@@ -32,7 +32,7 @@ export function Markdown({ content, className }: { content: string; className?: 
           h2: ({ children }) => <div style={{ fontWeight: 700, fontSize: 15, margin: "8px 0 4px" }}>{children}</div>,
           h3: ({ children }) => <div style={{ fontWeight: 700, fontSize: 14, margin: "6px 0 3px" }}>{children}</div>,
           blockquote: ({ children }) => (
-            <blockquote style={{ borderLeft: "3px solid rgba(96,165,250,0.4)", paddingLeft: 12, margin: "6px 0", color: "var(--ink-soft)" }}>
+            <blockquote style={{ borderLeft: "3px solid rgba(26,62,92,0.3)", paddingLeft: 12, margin: "6px 0", color: "var(--ink-soft)" }}>
               {children}
             </blockquote>
           ),

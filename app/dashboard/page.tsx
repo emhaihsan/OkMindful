@@ -79,7 +79,7 @@ export default function DashboardPage() {
                           </div>
                           <span style={{
                             padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
-                            background: checkedToday ? "rgba(45,212,191,0.15)" : "rgba(251,146,60,0.15)",
+                            background: checkedToday ? "rgba(141,177,94,0.15)" : "rgba(26,62,92,0.1)",
                           }}>
                             {checkedToday ? "Done" : "Pending"}
                           </span>
@@ -88,7 +88,7 @@ export default function DashboardPage() {
                           <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap" }}>
                             {c.validators.map((v) => {
                               const vs = c.validationStatus?.[v.toLowerCase()] || "pending";
-                              const bg = vs === "approved" ? "rgba(45,212,191,0.15)" : vs === "rejected" ? "rgba(244,114,182,0.15)" : "rgba(0,0,0,0.04)";
+                              const bg = vs === "approved" ? "rgba(141,177,94,0.15)" : vs === "rejected" ? "rgba(232,114,154,0.15)" : "rgba(0,0,0,0.04)";
                               return <span key={v} style={{ padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: bg }}>{v}: {vs}</span>;
                             })}
                           </div>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
                               <button className="neo-btn" style={{ padding: "5px 10px", fontSize: 12, background: "var(--pink)" }} onClick={() => store.validateCommitment(c.id, store.currentUser, false)}>Reject</button>
                             </div>
                           ) : (
-                            <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: myVS === "approved" ? "rgba(45,212,191,0.15)" : "rgba(244,114,182,0.15)" }}>{myVS}</span>
+                            <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: myVS === "approved" ? "rgba(141,177,94,0.15)" : "rgba(232,114,154,0.15)" }}>{myVS}</span>
                           )}
                         </div>
                       </div>

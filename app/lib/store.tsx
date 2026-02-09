@@ -20,8 +20,12 @@ function uid() {
   return crypto.randomUUID();
 }
 
+function localDateStr(d: Date = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return localDateStr();
 }
 
 /* ── Row → App model mappers ── */
@@ -112,6 +116,7 @@ interface Store {
   deleteCommitment: (id: string) => Promise<void>;
   checkinCommitment: (id: string, date?: string) => Promise<void>;
   validateCommitment: (id: string, validatorUsername: string, approve: boolean) => Promise<void>;
+  selfAssignCommitment: (id: string) => Promise<void>;
 
   myCommitments: () => Commitment[];
   validatingCommitments: () => Commitment[];
@@ -382,6 +387,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await refreshCommitments();
   }, [refreshCommitments]);
 
+  const selfAssignCommitment = useCallback(async (id: string) => {
+    setCommitments((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, selfAssigned: true } : c))
+    );
+    // We store selfAssigned in the daily_checkins metadata as a special key
+    const { data: row } = await sb().from("commitments").select("daily_checkins").eq("id", id).single();
+    const existing = (row?.daily_checkins || {}) as Record<string, boolean>;
+    await sb().from("commitments").update({ daily_checkins: { ...existing, __self_assigned__: true } }).eq("id", id);
+  }, []);
+
   /* ── Commitment filters ── */
   const myCommitments = useCallback(() => {
     return commitments.filter((c) => c.owner === currentUser);
@@ -409,7 +424,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /* ── Derived helpers ── */
   const todaySessions = useCallback(() => {
     const d = todayStr();
-    return sessions.filter((s) => s.endedAt.slice(0, 10) === d);
+    return sessions.filter((s) => localDateStr(new Date(s.endedAt)) === d);
   }, [sessions]);
 
   const todayFocusMinutes = useCallback(() => {
@@ -417,13 +432,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [todaySessions]);
 
   const streak = useCallback(() => {
-    let count = 0;
-    const d = new Date();
+    const now = new Date();
+    const todayLocal = localDateStr(now);
+
+    // Convert session endedAt (UTC ISO string) to local date string for comparison
+    const sessionLocalDates = new Set(
+      sessions.filter((s) => s.completed).map((s) => localDateStr(new Date(s.endedAt)))
+    );
+
+    const hasActivity = (dateStr: string) => {
+      return sessionLocalDates.has(dateStr)
+        || commitments.some((c) => c.dailyCheckins[dateStr]);
+    };
+
+    // Check if today has activity
+    const todayActive = hasActivity(todayLocal);
+
+    // Count consecutive days backward starting from yesterday
+    let count = todayActive ? 1 : 0;
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
     for (let i = 0; i < 365; i++) {
-      const ds = d.toISOString().slice(0, 10);
-      const hasSessions = sessions.some((s) => s.endedAt.slice(0, 10) === ds && s.completed);
-      const hasCheckin = commitments.some((c) => c.dailyCheckins[ds]);
-      if (hasSessions || hasCheckin) {
+      const ds = localDateStr(d);
+      if (hasActivity(ds)) {
         count++;
       } else {
         break;
@@ -450,6 +480,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     deleteCommitment,
     checkinCommitment,
     validateCommitment,
+    selfAssignCommitment,
     myCommitments,
     validatingCommitments,
     addMessage,

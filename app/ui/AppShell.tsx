@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "../lib/auth-context";
 import { AuthGuard } from "./AuthGuard";
@@ -46,26 +47,9 @@ export function AppShell({
               flexWrap: "wrap",
             }}
           >
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 11,
-                  background: "var(--yellow)",
-                  display: "grid",
-                  placeItems: "center",
-                  fontWeight: 800,
-                  fontSize: 13,
-                  border: "1.5px solid rgba(0,0,0,0.08)",
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-                }}
-              >
-                OK
-              </div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.03em" }}>OKMindful</div>
-              </div>
+            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+              <Image src="/logo.webp" alt="OKMindful" width={36} height={36} style={{ borderRadius: 11 }} />
+              <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.03em", color: "var(--ink)" }}>OKMindful</div>
             </Link>
 
             <nav style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>

@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sb().auth.signOut();
     setUser(null);
     setProfile(null);
-    window.location.href = "/auth/login";
+    window.location.href = "/";
   }, []);
 
   return (

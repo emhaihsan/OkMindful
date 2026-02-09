@@ -129,7 +129,7 @@ export default function ProfilePage() {
                     display: "grid", placeItems: "center",
                     fontWeight: 800, fontSize: 22, color: "white",
                     border: "1.5px solid rgba(0,0,0,0.06)",
-                    boxShadow: "0 4px 12px rgba(96,165,250,0.15)",
+                    boxShadow: "0 4px 12px rgba(26,62,92,0.15)",
                   }}
                 >
                   {displayName.slice(0, 2).toUpperCase()}
@@ -138,9 +138,9 @@ export default function ProfilePage() {
                   <div className="h2">{displayName}</div>
                   <div className="p">{profile?.email || "Member"} · {streakVal}-day streak</div>
                   <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
-                    <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(45,212,191,0.15)" }}>Streak {streakVal}</span>
+                    <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(141,177,94,0.15)" }}>Streak {streakVal}</span>
                     {failedStake === 0 && commitments.length > 0 && (
-                      <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(244,114,182,0.12)" }}>Stake Safe</span>
+                      <span style={{ padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(232,114,154,0.12)" }}>Stake Safe</span>
                     )}
                   </div>
                 </div>

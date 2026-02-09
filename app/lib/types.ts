@@ -31,6 +31,8 @@ export interface Commitment {
   dailyCheckins: Record<string, boolean>;
   status: "active" | "completed" | "failed";
   validationStatus: Record<string, "pending" | "approved" | "rejected">;
+  checkinFrequency?: "daily" | "weekly" | "end";
+  selfAssigned?: boolean;
 }
 
 export interface ChatMessage {
